@@ -19,6 +19,10 @@ export function getClientSecret() {
 }
 
 export function getCallbackUrl() {
+  const domain = process.env.DOMAIN;
+  if (domain) {
+    return `https://${domain}/api/auth/google/callback`;
+  }
   const domains = process.env.REPLIT_DOMAINS;
   if (domains) {
     const primary = domains.split(",")[0].trim();
