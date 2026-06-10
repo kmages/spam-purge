@@ -27,7 +27,7 @@ ENV_FILE=/etc/spam-purge.env
 APP_USER=spampurge
 DB_NAME=spam_purge
 DB_USER=spampurge
-PORT=8080
+PORT=8085
 
 echo "==> SPAM Purge installer"
 echo "    repo: $ROOT"
@@ -42,7 +42,10 @@ if [[ -f "$ENV_FILE" ]]; then
 fi
 
 ask() { # ask VAR "Question" [silent]
-  local var="$1" q="$2" silent="${3:-}" val="${!var:-}"
+  local var="$1" q="$2" silent="${3:-}" val=""
+  set +u
+  val="${!var}"
+  set -u
   if [[ -z "$val" ]]; then
     if [[ "$silent" == "silent" ]]; then read -rsp "$q: " val; echo
     else read -rp "$q: " val; fi
@@ -88,15 +91,16 @@ if ! command -v psql >/dev/null 2>&1; then
 fi
 systemctl enable --now postgresql
 
-if ! command -v caddy >/dev/null 2>&1; then
-  echo "==> installing Caddy"
-  curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' \
-    | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
-  curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' \
-    > /etc/apt/sources.list.d/caddy-stable.list
-  apt-get update -y
-  apt-get install -y caddy
-fi
+# Caddy installation bypassed since Nginx is used as the frontend proxy on this server
+# if ! command -v caddy >/dev/null 2>&1; then
+#   echo "==> installing Caddy"
+#   curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' \
+#     | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+#   curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' \
+#     > /etc/apt/sources.list.d/caddy-stable.list
+#   apt-get update -y
+#   apt-get install -y caddy
+# fi
 
 # ---------------------------------------------------------------------------
 # 3. Create the database (first run only)
@@ -169,16 +173,16 @@ systemctl enable --now spam-purge
 systemctl restart spam-purge
 
 # ---------------------------------------------------------------------------
-# 7. Caddy reverse proxy (automatic HTTPS)
+# 7. Caddy reverse proxy (automatic HTTPS) - Bypassed for Nginx config
 # ---------------------------------------------------------------------------
-echo "==> configuring Caddy for $DOMAIN"
-cat > /etc/caddy/Caddyfile <<CADDY
-${DOMAIN} {
-    reverse_proxy localhost:${PORT}
-}
-CADDY
-systemctl enable caddy
-systemctl reload caddy || systemctl restart caddy
+# echo "==> configuring Caddy for $DOMAIN"
+# cat > /etc/caddy/Caddyfile <<CADDY
+# ${DOMAIN} {
+#     reverse_proxy localhost:${PORT}
+# }
+# CADDY
+# systemctl enable caddy
+# systemctl reload caddy || systemctl restart caddy
 
 # ---------------------------------------------------------------------------
 # Done
