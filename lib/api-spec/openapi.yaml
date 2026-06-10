@@ -1,0 +1,223 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: Spam Purge API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: auth
+    description: Google OAuth authentication
+  - name: spam
+    description: Spam management
+  - name: settings
+    description: Application settings
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /auth/status:
+    get:
+      operationId: getAuthStatus
+      tags: [auth]
+      summary: Get authentication status
+      description: Returns whether the user is authenticated with Gmail
+      responses:
+        "200":
+          description: Auth status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthStatus"
+
+  /auth/disconnect:
+    post:
+      operationId: disconnectAuth
+      tags: [auth]
+      summary: Disconnect Gmail account
+      responses:
+        "200":
+          description: Disconnected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DisconnectResult"
+
+  /spam/count:
+    get:
+      operationId: getSpamCount
+      tags: [spam]
+      summary: Get current spam message count
+      responses:
+        "200":
+          description: Spam count
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SpamCount"
+
+  /spam/purge:
+    post:
+      operationId: purgeSpam
+      tags: [spam]
+      summary: Permanently delete all spam messages
+      description: Permanently deletes all messages in the spam folder, bypassing the 30-day trash delay
+      responses:
+        "200":
+          description: Purge result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurgeResult"
+
+  /spam/history:
+    get:
+      operationId: getPurgeHistory
+      tags: [spam]
+      summary: Get purge history
+      description: Returns a list of past purge operations
+      responses:
+        "200":
+          description: Purge history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PurgeRecord"
+
+  /settings:
+    get:
+      operationId: getSettings
+      tags: [settings]
+      summary: Get application settings
+      description: Returns the automatic spam purge configuration
+      responses:
+        "200":
+          description: Settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Settings"
+    put:
+      operationId: updateSettings
+      tags: [settings]
+      summary: Update application settings
+      description: Updates the automatic spam purge configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateSettings"
+      responses:
+        "200":
+          description: Updated settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Settings"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+
+    AuthStatus:
+      type: object
+      required: [connected]
+      properties:
+        connected:
+          type: boolean
+        email:
+          type: ["string", "null"]
+        name:
+          type: ["string", "null"]
+        picture:
+          type: ["string", "null"]
+
+    DisconnectResult:
+      type: object
+      required: [success]
+      properties:
+        success:
+          type: boolean
+
+    SpamCount:
+      type: object
+      required: [count]
+      properties:
+        count:
+          type: integer
+        sizeBytes:
+          type: ["integer", "null"]
+
+    PurgeResult:
+      type: object
+      required: [deleted, success]
+      properties:
+        deleted:
+          type: integer
+        success:
+          type: boolean
+        message:
+          type: ["string", "null"]
+
+    PurgeRecord:
+      type: object
+      required: [id, deletedCount, purgedAt]
+      properties:
+        id:
+          type: integer
+        deletedCount:
+          type: integer
+        purgedAt:
+          type: string
+          format: date-time
+        durationMs:
+          type: ["integer", "null"]
+        source:
+          type: string
+
+    Settings:
+      type: object
+      required: [autoPurgeEnabled, autoPurgeIntervalMinutes, minIntervalMinutes, maxIntervalMinutes]
+      properties:
+        autoPurgeEnabled:
+          type: boolean
+        autoPurgeIntervalMinutes:
+          type: integer
+        lastRunAt:
+          type: ["string", "null"]
+          format: date-time
+        minIntervalMinutes:
+          type: integer
+        maxIntervalMinutes:
+          type: integer
+
+    UpdateSettings:
+      type: object
+      required: [autoPurgeEnabled, autoPurgeIntervalMinutes]
+      properties:
+        autoPurgeEnabled:
+          type: boolean
+        autoPurgeIntervalMinutes:
+          type: integer

@@ -1,0 +1,11 @@
+# Caddy reverse proxy for SPAM Purge — gives you automatic HTTPS.
+# 1. Replace your-domain.com with your real domain (its DNS A record must point
+#    at this VM's IP).
+# 2. Install Caddy, put this at /etc/caddy/Caddyfile, then: sudo systemctl reload caddy
+#
+# HTTPS is required: the app's login cookie is secure-only in production, and
+# `trust proxy` is already enabled so Caddy can terminate TLS in front of it.
+
+your-domain.com {
+    reverse_proxy localhost:8080
+}

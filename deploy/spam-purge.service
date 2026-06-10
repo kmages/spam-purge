@@ -1,0 +1,22 @@
+# systemd unit for SPAM Purge.
+# 1. Edit WorkingDirectory and User below to match your VM.
+# 2. sudo cp deploy/spam-purge.service /etc/systemd/system/spam-purge.service
+# 3. sudo systemctl daemon-reload && sudo systemctl enable --now spam-purge
+# 4. Check it:  systemctl status spam-purge   /   journalctl -u spam-purge -f
+
+[Unit]
+Description=SPAM Purge (Gmail auto spam deletion)
+After=network.target postgresql.service
+
+[Service]
+# Absolute path to the repo on the VM
+WorkingDirectory=/opt/spam-purge
+EnvironmentFile=/etc/spam-purge.env
+ExecStart=/usr/bin/node --enable-source-maps artifacts/api-server/dist/index.mjs
+Restart=always
+RestartSec=5
+# Run as a non-root user that owns the repo directory
+User=spampurge
+
+[Install]
+WantedBy=multi-user.target
