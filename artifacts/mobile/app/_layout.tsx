@@ -1,10 +1,32 @@
 import React, { useMemo } from 'react';
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Pressable, Text, View } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from '@/lib/auth';
 import { useColors } from '@/lib/theme';
+
+// Expo Router renders this instead of closing the app when a screen throws, so a failure is visible and reportable.
+export function ErrorBoundary({ error, retry }: { error: Error; retry: () => Promise<void> }) {
+  const c = useColors();
+  return (
+    <View style={{ flex: 1, backgroundColor: c.background, padding: 24, paddingTop: 80, gap: 16 }}>
+      <Text style={{ fontSize: 22, fontWeight: '700', color: c.text }}>Something went wrong</Text>
+      <Text style={{ fontSize: 15, color: c.muted }}>Please screenshot this and send it to kmages@gmail.com.</Text>
+      <Text selectable style={{ fontSize: 13, color: c.text, fontFamily: 'Menlo' }}>
+        {error.message}
+      </Text>
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => void retry()}
+        style={{ backgroundColor: c.primary, borderRadius: 12, minHeight: 50, alignItems: 'center', justifyContent: 'center' }}
+      >
+        <Text style={{ color: c.primaryText, fontWeight: '700', fontSize: 16 }}>Try again</Text>
+      </Pressable>
+    </View>
+  );
+}
 
 function isUnauthorized(err: unknown): boolean {
   return (err as { status?: number } | null)?.status === 401;
