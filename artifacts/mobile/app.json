@@ -23,7 +23,11 @@
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.SYSTEM_ALERT_WINDOW"
-      ]
+      ],
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FFFFFF"
+      }
     },
     "plugins": [
       "expo-router",
@@ -38,6 +42,7 @@
       "eas": {
         "projectId": "94db5aab-e85d-49cd-b8b1-2c4aea536b59"
       }
-    }
+    },
+    "icon": "./assets/icon.png"
   }
 }

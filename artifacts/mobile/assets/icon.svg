@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- Original artwork: a generic tin with an email envelope, under a "no" sign. No third-party logos or trade dress. -->
+  <defs>
+    <linearGradient id="tin" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#9aa3ad"/>
+      <stop offset="0.35" stop-color="#e8ecf0"/>
+      <stop offset="0.65" stop-color="#c9d0d7"/>
+      <stop offset="1" stop-color="#8c96a1"/>
+    </linearGradient>
+    <linearGradient id="lid" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f1f4f7"/>
+      <stop offset="1" stop-color="#b9c1c9"/>
+    </linearGradient>
+    <linearGradient id="label" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2f8f5b"/>
+      <stop offset="1" stop-color="#1f6b43"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1024" height="1024" fill="#ffffff"/>
+
+  <!-- tin body -->
+  <rect x="232" y="330" width="560" height="440" rx="70" fill="url(#tin)" stroke="#6f7983" stroke-width="10"/>
+  <!-- lid -->
+  <rect x="216" y="292" width="592" height="92" rx="46" fill="url(#lid)" stroke="#6f7983" stroke-width="10"/>
+  <!-- pull key -->
+  <path d="M640 300 q40 -70 110 -40 q30 18 0 52" fill="none" stroke="#6f7983" stroke-width="16" stroke-linecap="round"/>
+  <!-- label band -->
+  <rect x="232" y="420" width="560" height="280" fill="url(#label)"/>
+  <rect x="232" y="420" width="560" height="10" fill="#174f32"/>
+  <rect x="232" y="690" width="560" height="10" fill="#174f32"/>
+  <!-- envelope -->
+  <rect x="392" y="478" width="240" height="164" rx="18" fill="#ffffff"/>
+  <path d="M398 492 L512 578 L626 492" fill="none" stroke="#1f6b43" stroke-width="16" stroke-linejoin="round" stroke-linecap="round"/>
+  <!-- base rim -->
+  <rect x="232" y="728" width="560" height="22" rx="11" fill="#7d8792" opacity="0.5"/>
+
+  <!-- no sign -->
+  <circle cx="512" cy="512" r="400" fill="none" stroke="#e1251b" stroke-width="72"/>
+  <line x1="229" y1="229" x2="795" y2="795" stroke="#e1251b" stroke-width="72"/>
+</svg>
