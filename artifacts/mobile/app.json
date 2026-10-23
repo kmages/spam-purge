@@ -32,6 +32,12 @@
     "experiments": {
       "typedRoutes": true
     },
-    "owner": "kmages"
+    "owner": "kmages",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "94db5aab-e85d-49cd-b8b1-2c4aea536b59"
+      }
+    }
   }
 }
