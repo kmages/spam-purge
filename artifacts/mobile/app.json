@@ -16,7 +16,7 @@
     },
     "android": {
       "package": "spamcleaner.herokuapp.com.spamtrashautodeletegmail",
-      "versionCode": 100,
+      "versionCode": 20000000,
       "permissions": [],
       "blockedPermissions": [
         "android.permission.RECORD_AUDIO",
