@@ -26,6 +26,12 @@ export default function ConnectPage() {
         <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4 text-white">
           SPAM Purge
         </h1>
+        {errorMessage && (
+          <p role="alert" className="w-full mb-6 mt-2 text-left text-sm border border-destructive rounded-lg p-4 text-destructive-foreground bg-destructive/20">
+            {errorMessage}
+          </p>
+        )}
+
         <p className="text-lg text-muted-foreground mb-6">
           Hate seeing spam? Gmail keeps spam and trash for 30 days. SPAM Purge deletes them permanently as they arrive, around the clock, on a schedule you choose.
         </p>
@@ -52,12 +58,6 @@ export default function ConnectPage() {
             What SPAM Purge does with your Gmail: counts Spam and Trash, reads the sender and subject of spam, and deletes. It never reads message bodies, never reads your Inbox, and never sends anything.
           </p>
         </section>
-
-        {errorMessage && (
-          <p role="alert" className="w-full mb-6 text-left text-sm border border-destructive rounded-lg p-4 text-destructive-foreground bg-destructive/20">
-            {errorMessage}
-          </p>
-        )}
 
         <a
           href="/api/auth/google"
