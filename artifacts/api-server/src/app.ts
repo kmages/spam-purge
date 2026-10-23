@@ -70,7 +70,8 @@ if (process.env.SERVE_STATIC === "true") {
     process.env.STATIC_DIR ??
     path.resolve(process.cwd(), "artifacts/spam-purge/dist/public");
 
-  app.use(express.static(staticDir));
+  // extensions: plain-HTML pages such as /privacy are served without the .html suffix.
+  app.use(express.static(staticDir, { extensions: ["html"] }));
 
   // SPA fallback: anything that isn't an API call or a real file returns index.html.
   app.use((req, res, next) => {

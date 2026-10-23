@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Alert } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
 import { router } from 'expo-router';
 import { deleteAccount, disconnectAuth, useGetAuthStatus } from '@workspace/api-client-react';
-import { Button, Card, Screen, T } from '@/components/ui';
-import { useAuth } from '@/lib/auth';
+import { Button, Card, LinkRow, Screen, T } from '@/components/ui';
+import { API_ORIGIN, useAuth } from '@/lib/auth';
 
 export default function Account() {
   const { signOut, forget } = useAuth();
@@ -62,6 +63,9 @@ export default function Account() {
             ])
           }
         />
+      </Card>
+      <Card>
+        <LinkRow label="Privacy policy" onPress={() => void WebBrowser.openBrowserAsync(`${API_ORIGIN}/privacy`)} />
       </Card>
     </Screen>
   );
