@@ -32,8 +32,8 @@ router.post("/spam/purge", requireAuth, async (req, res) => {
   try {
     const auth = oauthClientFromTokens(session.tokens);
     const { deleted } = await purgeAllSpam(auth, "manual");
-    req.log.info({ deleted }, "Spam purge complete");
-    res.json({ deleted, success: true, message: `Permanently deleted ${deleted} spam message${deleted !== 1 ? "s" : ""}` });
+    req.log.info({ deleted }, "Spam & trash purge complete");
+    res.json({ deleted, success: true, message: `Permanently deleted ${deleted} spam & trash message${deleted !== 1 ? "s" : ""}` });
   } catch (err) {
     req.log.error({ err }, "Failed to purge spam");
     res.status(500).json({ error: "Failed to purge spam" });

@@ -19,14 +19,14 @@ export function getClientSecret() {
 }
 
 export function getCallbackUrl() {
-  const domain = process.env.DOMAIN;
-  if (domain) {
-    return `https://${domain}/api/auth/google/callback`;
-  }
   const domains = process.env.REPLIT_DOMAINS;
   if (domains) {
     const primary = domains.split(",")[0].trim();
     return `https://${primary}/api/auth/google/callback`;
+  }
+  const domain = process.env.DOMAIN;
+  if (domain) {
+    return `https://${domain}/api/auth/google/callback`;
   }
   return `http://localhost:${process.env.PORT ?? 5000}/api/auth/google/callback`;
 }

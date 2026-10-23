@@ -52,7 +52,7 @@ export default function DashboardPage() {
           toast({
             title: result.autoPurgeEnabled ? "Auto-purge enabled" : "Auto-purge updated",
             description: result.autoPurgeEnabled
-              ? `Spam will be purged automatically every ${result.autoPurgeIntervalMinutes} minute${result.autoPurgeIntervalMinutes !== 1 ? "s" : ""}.`
+              ? `Spam & trash will be purged automatically every ${result.autoPurgeIntervalMinutes} minute${result.autoPurgeIntervalMinutes !== 1 ? "s" : ""}.`
               : "Automatic purging is turned off.",
           });
         },
@@ -93,7 +93,7 @@ export default function DashboardPage() {
         if (result.success) {
           toast({
             title: "Purge Complete",
-            description: `Permanently deleted ${result.deleted} spam messages.`,
+            description: `Permanently deleted ${result.deleted} spam & trash messages.`,
           });
           queryClient.invalidateQueries({ queryKey: getGetSpamCountQueryKey() });
           queryClient.invalidateQueries({ queryKey: getGetPurgeHistoryQueryKey() });
@@ -180,7 +180,7 @@ export default function DashboardPage() {
               </div>
               <div className="text-center">
                 <h2 className="text-3xl font-bold mb-2">Your inbox is clean</h2>
-                <p className="text-muted-foreground">No spam messages detected.</p>
+                <p className="text-muted-foreground">No spam or trash messages detected.</p>
               </div>
             </div>
           ) : (
@@ -191,7 +191,7 @@ export default function DashboardPage() {
                   {spamCount?.count.toLocaleString()}
                 </div>
                 <p className="text-muted-foreground text-lg">
-                  spam messages • {formatBytes(spamCount?.sizeBytes)}
+                  spam &amp; trash messages • {formatBytes(spamCount?.sizeBytes)}
                 </p>
               </div>
 
@@ -210,7 +210,7 @@ export default function DashboardPage() {
                   ) : (
                     <>
                       <Trash2 className="w-6 h-6" />
-                      Purge All Spam
+                      Purge Spam &amp; Trash
                     </>
                   )}
                 </span>
@@ -227,7 +227,7 @@ export default function DashboardPage() {
                 <Timer className="w-5 h-5 text-primary" />
                 <CardTitle>Automatic Purge</CardTitle>
               </div>
-              <CardDescription>Let SPAM Purge delete spam on a schedule, even when you're away.</CardDescription>
+              <CardDescription>Let SPAM Purge delete spam and trash on a schedule, even when you're away.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex items-center justify-between gap-4">
