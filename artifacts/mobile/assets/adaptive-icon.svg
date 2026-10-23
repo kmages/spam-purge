@@ -12,8 +12,8 @@
       <stop offset="1" stop-color="#b9c1c9"/>
     </linearGradient>
     <linearGradient id="label" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#2f8f5b"/>
-      <stop offset="1" stop-color="#1f6b43"/>
+      <stop offset="0" stop-color="#3fbf78"/>
+      <stop offset="1" stop-color="#2e9e60"/>
     </linearGradient>
   </defs>
   <g transform="translate(512 512) scale(0.62) translate(-512 -512)">
@@ -30,9 +30,11 @@
   <rect x="232" y="420" width="560" height="280" fill="url(#label)"/>
   <rect x="232" y="420" width="560" height="10" fill="#174f32"/>
   <rect x="232" y="690" width="560" height="10" fill="#174f32"/>
+  <!-- word on the label -->
+  <text x="512" y="548" text-anchor="middle" font-family="Arial Black, Arial, Helvetica, sans-serif" font-weight="900" font-size="132" letter-spacing="4" fill="#000000">SPAM</text>
   <!-- envelope -->
-  <rect x="392" y="478" width="240" height="164" rx="18" fill="#ffffff"/>
-  <path d="M398 492 L512 578 L626 492" fill="none" stroke="#1f6b43" stroke-width="16" stroke-linejoin="round" stroke-linecap="round"/>
+  <rect x="447" y="580" width="130" height="90" rx="12" fill="#ffffff"/>
+  <path d="M451 588 L512 632 L573 588" fill="none" stroke="#1f6b43" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
   <!-- base rim -->
   <rect x="232" y="728" width="560" height="22" rx="11" fill="#7d8792" opacity="0.5"/>
 
