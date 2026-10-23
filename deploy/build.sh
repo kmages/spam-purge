@@ -26,8 +26,23 @@ pnpm install
 echo "==> pushing database schema"
 pnpm --filter @workspace/db run push
 
+# The newsletter publishes its Slack lead GIFs into dist/public, and vite empties that
+# folder on every build. Stash them and put them back afterwards.
+PUBLIC_DIR="$ROOT/artifacts/spam-purge/dist/public"
+STASH="$(mktemp -d)"
+trap 'rm -rf "${STASH:?}"' EXIT
+if compgen -G "$PUBLIC_DIR/newsletter_*" > /dev/null; then
+  echo "==> stashing newsletter images"
+  cp -p "$PUBLIC_DIR"/newsletter_* "$STASH"/
+fi
+
 echo "==> building frontend"
 PORT="$PORT" BASE_PATH=/ NODE_ENV=production pnpm --filter @workspace/spam-purge run build
+
+if compgen -G "$STASH/newsletter_*" > /dev/null; then
+  cp -p "$STASH"/newsletter_* "$PUBLIC_DIR"/
+  echo "==> restored $(ls "$STASH" | wc -l) newsletter images"
+fi
 
 echo "==> building backend"
 pnpm --filter @workspace/api-server run build
