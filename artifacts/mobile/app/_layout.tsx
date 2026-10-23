@@ -68,6 +68,7 @@ export default function RootLayout() {
             <Stack.Screen name="allowlist" options={{ title: 'Allowlist' }} />
             <Stack.Screen name="log" options={{ title: 'What got purged' }} />
             <Stack.Screen name="account" options={{ title: 'Account' }} />
+            <Stack.Screen name="auth" options={{ title: 'Signing in', headerShown: false }} />
           </Stack>
         </QueryRoot>
       </AuthProvider>

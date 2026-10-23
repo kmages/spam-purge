@@ -15,6 +15,10 @@ setBaseUrl(API_ORIGIN);
 let currentToken: string | null = null;
 setAuthTokenGetter(() => currentToken);
 
+// Sign-in in progress: the PKCE verifier, and each one-time code's redemption so it happens once.
+let pendingVerifier: string | null = null;
+const redemptions = new Map<string, Promise<string | null>>();
+
 const SIGN_IN_ERRORS: Record<string, string> = {
   oauth_denied: 'Google sign-in was cancelled.',
   gmail_scope_missing: 'SPAM Purge needs permission to manage your Gmail. Sign in again and leave the Gmail box ticked.',
@@ -40,6 +44,8 @@ interface AuthContextValue {
   signedIn: boolean;
   // Resolves to an error message, or null on success or a silent cancel.
   signIn: () => Promise<string | null>;
+  // Finishes sign-in from the redirect's code or error. Resolves to an error message, or null.
+  completeRedirect: (code: string | null, error: string | null) => Promise<string | null>;
   signOut: () => Promise<void>;
   // Drops the local token without calling the server, e.g. after the account is deleted or a 401.
   forget: () => Promise<void>;
@@ -66,6 +72,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await SecureStore.deleteItemAsync(TOKEN_KEY);
   }, []);
 
+  // The redirect back from Google reaches the app two ways: iOS returns it from openAuthSessionAsync,
+  // while Android also opens it as a deep link to the /auth route. Both call this, and the one-time
+  // code is redeemed only once.
+  const completeRedirect = useCallback(
+    (code: string | null, error: string | null): Promise<string | null> => {
+      if (error) return Promise.resolve(error === 'oauth_denied' ? null : (SIGN_IN_ERRORS[error] ?? SIGN_IN_ERRORS.oauth_failed));
+      if (!code) return Promise.resolve(SIGN_IN_ERRORS.oauth_failed);
+      const existing = redemptions.get(code);
+      if (existing) return existing;
+      const verifier = pendingVerifier;
+      if (!verifier) return Promise.resolve(null); // a stale link with no sign-in in progress
+      const redemption = (async () => {
+        try {
+          const { token } = await exchangeMobileCode({ code, code_verifier: verifier });
+          await SecureStore.setItemAsync(TOKEN_KEY, token);
+          currentToken = token;
+          pendingVerifier = null;
+          setSignedIn(true);
+          return null;
+        } catch {
+          return SIGN_IN_ERRORS.oauth_failed;
+        }
+      })();
+      redemptions.set(code, redemption);
+      return redemption;
+    },
+    [],
+  );
+
   // PKCE (S256): only the verifier's hash travels through the browser, so an app that grabs the redirect can't use the code.
   const signIn = useCallback(async (): Promise<string | null> => {
     const verifier = base64url(Crypto.getRandomBytes(32));
@@ -73,29 +108,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       encoding: Crypto.CryptoEncoding.BASE64,
     });
     const challenge = digest.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    pendingVerifier = verifier;
 
     const result = await WebBrowser.openAuthSessionAsync(
       `${API_ORIGIN}/api/auth/google?client=mobile&code_challenge=${challenge}`,
       REDIRECT_URI,
     );
+    // On Android the browser can report "dismiss" because the /auth route already took the redirect.
     if (result.type !== 'success') return null;
 
     const { queryParams } = Linking.parse(result.url);
-    const error = typeof queryParams?.error === 'string' ? queryParams.error : null;
-    const code = typeof queryParams?.code === 'string' ? queryParams.code : null;
-    if (error) return error === 'oauth_denied' ? null : (SIGN_IN_ERRORS[error] ?? SIGN_IN_ERRORS.oauth_failed);
-    if (!code) return SIGN_IN_ERRORS.oauth_failed;
-
-    try {
-      const { token } = await exchangeMobileCode({ code, code_verifier: verifier });
-      await SecureStore.setItemAsync(TOKEN_KEY, token);
-      currentToken = token;
-      setSignedIn(true);
-      return null;
-    } catch {
-      return SIGN_IN_ERRORS.oauth_failed;
-    }
-  }, []);
+    return completeRedirect(
+      typeof queryParams?.code === 'string' ? queryParams.code : null,
+      typeof queryParams?.error === 'string' ? queryParams.error : null,
+    );
+  }, [completeRedirect]);
 
   const signOut = useCallback(async () => {
     try {
@@ -106,7 +133,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await forget();
   }, [forget]);
 
-  return <AuthContext.Provider value={{ ready, signedIn, signIn, signOut, forget }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ ready, signedIn, signIn, completeRedirect, signOut, forget }}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth(): AuthContextValue {
