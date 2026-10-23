@@ -9,8 +9,8 @@
 export interface SpamCount {
   /** Messages the current settings would purge */
   count: number;
-  spam?: number;
-  trash?: number;
+  spam: number;
+  trash: number;
   /** @nullable */
   sizeBytes?: number | null;
 }

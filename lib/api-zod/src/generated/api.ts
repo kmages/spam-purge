@@ -25,7 +25,7 @@ export const GetAuthStatusResponse = zod.object({
   "email": zod.string().nullish(),
   "name": zod.string().nullish(),
   "picture": zod.string().nullish(),
-  "riskAccepted": zod.boolean().optional()
+  "riskAccepted": zod.boolean()
 })
 
 
@@ -63,8 +63,8 @@ export const DisconnectAuthResponse = zod.object({
  */
 export const GetSpamCountResponse = zod.object({
   "count": zod.number().describe('Messages the current settings would purge'),
-  "spam": zod.number().optional(),
-  "trash": zod.number().optional(),
+  "spam": zod.number(),
+  "trash": zod.number(),
   "sizeBytes": zod.number().nullish()
 })
 
@@ -120,10 +120,10 @@ export const GetSettingsResponse = zod.object({
   "lastRunAt": zod.coerce.date().nullish(),
   "minIntervalMinutes": zod.number(),
   "maxIntervalMinutes": zod.number(),
-  "purgeSpam": zod.boolean().optional(),
-  "purgeTrash": zod.boolean().optional(),
-  "spamDelayMinutes": zod.number().optional(),
-  "maxSpamDelayMinutes": zod.number().optional()
+  "purgeSpam": zod.boolean(),
+  "purgeTrash": zod.boolean(),
+  "spamDelayMinutes": zod.number(),
+  "maxSpamDelayMinutes": zod.number()
 })
 
 
@@ -145,10 +145,10 @@ export const UpdateSettingsResponse = zod.object({
   "lastRunAt": zod.coerce.date().nullish(),
   "minIntervalMinutes": zod.number(),
   "maxIntervalMinutes": zod.number(),
-  "purgeSpam": zod.boolean().optional(),
-  "purgeTrash": zod.boolean().optional(),
-  "spamDelayMinutes": zod.number().optional(),
-  "maxSpamDelayMinutes": zod.number().optional()
+  "purgeSpam": zod.boolean(),
+  "purgeTrash": zod.boolean(),
+  "spamDelayMinutes": zod.number(),
+  "maxSpamDelayMinutes": zod.number()
 })
 
 

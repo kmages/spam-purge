@@ -277,7 +277,7 @@ components:
 
     AuthStatus:
       type: object
-      required: [connected]
+      required: [connected, riskAccepted]
       properties:
         connected:
           type: boolean
@@ -359,7 +359,7 @@ components:
 
     SpamCount:
       type: object
-      required: [count]
+      required: [count, spam, trash]
       properties:
         count:
           type: integer
@@ -409,7 +409,7 @@ components:
 
     Settings:
       type: object
-      required: [autoPurgeEnabled, autoPurgeIntervalMinutes, minIntervalMinutes, maxIntervalMinutes]
+      required: [autoPurgeEnabled, autoPurgeIntervalMinutes, minIntervalMinutes, maxIntervalMinutes, purgeSpam, purgeTrash, spamDelayMinutes, maxSpamDelayMinutes]
       properties:
         autoPurgeEnabled:
           type: boolean

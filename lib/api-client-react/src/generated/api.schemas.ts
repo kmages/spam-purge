@@ -17,7 +17,7 @@ export interface AuthStatus {
   name?: string | null;
   /** @nullable */
   picture?: string | null;
-  riskAccepted?: boolean;
+  riskAccepted: boolean;
 }
 
 export interface MobileTokenRequest {
@@ -61,8 +61,8 @@ export interface DisconnectResult {
 export interface SpamCount {
   /** Messages the current settings would purge */
   count: number;
-  spam?: number;
-  trash?: number;
+  spam: number;
+  trash: number;
   /** @nullable */
   sizeBytes?: number | null;
 }
@@ -95,10 +95,10 @@ export interface Settings {
   lastRunAt?: string | null;
   minIntervalMinutes: number;
   maxIntervalMinutes: number;
-  purgeSpam?: boolean;
-  purgeTrash?: boolean;
-  spamDelayMinutes?: number;
-  maxSpamDelayMinutes?: number;
+  purgeSpam: boolean;
+  purgeTrash: boolean;
+  spamDelayMinutes: number;
+  maxSpamDelayMinutes: number;
 }
 
 /**

@@ -14,5 +14,5 @@ export interface AuthStatus {
   name?: string | null;
   /** @nullable */
   picture?: string | null;
-  riskAccepted?: boolean;
+  riskAccepted: boolean;
 }

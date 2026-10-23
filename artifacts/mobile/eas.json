@@ -1,0 +1,24 @@
+{
+  "cli": {
+    "version": ">= 16.0.0",
+    "appVersionSource": "local"
+  },
+  "build": {
+    "preview": {
+      "distribution": "internal",
+      "android": { "buildType": "apk" },
+      "env": { "EXPO_PUBLIC_DOMAIN": "spampurge.5-161-180-197.nip.io" },
+      "node": "24.21.0"
+    },
+    "production": {
+      "autoIncrement": false,
+      "env": { "EXPO_PUBLIC_DOMAIN": "spampurge.5-161-180-197.nip.io" },
+      "node": "24.21.0"
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": { "ascAppId": "1168334177" }
+    }
+  }
+}

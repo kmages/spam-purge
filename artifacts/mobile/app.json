@@ -1,0 +1,37 @@
+{
+  "expo": {
+    "name": "SPAM Purge",
+    "slug": "spam-purge",
+    "version": "2.0.0",
+    "orientation": "portrait",
+    "scheme": "spampurge",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.herokuapp.spam-cleaner",
+      "buildNumber": "1",
+      "config": {
+        "usesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "spamcleaner.herokuapp.com.spamtrashautodeletegmail",
+      "versionCode": 100,
+      "permissions": [],
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.SYSTEM_ALERT_WINDOW"
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "owner": "kmages"
+  }
+}
