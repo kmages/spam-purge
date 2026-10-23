@@ -1,6 +1,18 @@
 import { ShieldAlert } from "lucide-react";
 
+// The OAuth callback sends people back here with ?error=<code> when sign-in doesn't finish.
+const SIGN_IN_ERRORS: Record<string, string> = {
+  gmail_scope_missing:
+    'The Gmail box was not ticked on Google\'s permissions screen. Connect again, and tick "Read, compose, send and permanently delete all your email" (or Select all) before you continue.',
+  no_refresh_token: "Google did not grant ongoing access. Please connect again.",
+  oauth_state: "Sign-in expired. Please try again.",
+  oauth_failed: "Sign-in failed. Please try again.",
+};
+
 export default function ConnectPage() {
+  const errorCode = new URLSearchParams(window.location.search).get("error");
+  const errorMessage = errorCode && errorCode !== "oauth_denied" ? (SIGN_IN_ERRORS[errorCode] ?? SIGN_IN_ERRORS.oauth_failed) : null;
+
   return (
     <div className="min-h-[100dvh] w-full flex flex-col items-center justify-center bg-background text-foreground relative overflow-hidden">
       {/* Background decorations */}
@@ -26,6 +38,9 @@ export default function ConnectPage() {
           <p className="text-sm text-foreground/80 mb-3">
             Google shows "Google hasn't verified this app" for small independent apps that haven't paid for its yearly security audit. SPAM Purge is one person's app, not a big company. To continue, tap <strong>Advanced</strong>, then <strong>Go to spam-purge.com (unsafe)</strong>.
           </p>
+          <p className="text-sm text-foreground/80 mb-3">
+            On the permissions screen that follows, <strong>tick the Gmail box</strong> ("Read, compose, send and permanently delete all your email") or <strong>Select all</strong>, then Continue. Google may leave it unticked, and SPAM Purge can't delete anything without it.
+          </p>
           <img
             src="/google-warning.svg"
             alt="Illustration of Google's warning screen: tap Advanced, then Go to spam-purge.com (unsafe)"
@@ -37,6 +52,12 @@ export default function ConnectPage() {
             What SPAM Purge does with your Gmail: counts Spam and Trash, reads the sender and subject of spam, and deletes. It never reads message bodies, never reads your Inbox, and never sends anything.
           </p>
         </section>
+
+        {errorMessage && (
+          <p role="alert" className="w-full mb-6 text-left text-sm border border-destructive rounded-lg p-4 text-destructive-foreground bg-destructive/20">
+            {errorMessage}
+          </p>
+        )}
 
         <a
           href="/api/auth/google"

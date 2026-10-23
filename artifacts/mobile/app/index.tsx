@@ -66,6 +66,11 @@ function SignIn() {
           security audit. SPAM Purge is one person's app, not a big company. To continue, tap Advanced, then Go to
           spam-purge.com (unsafe).
         </T>
+        <T>
+          On the permissions screen that follows, tick the Gmail box ("Read, compose, send and permanently delete all your
+          email") or Select all, then Continue. Google may leave it unticked, and SPAM Purge can't delete anything without
+          it.
+        </T>
         <GoogleWarningIllustration />
         <T kind="muted">
           What SPAM Purge does with your Gmail: counts Spam and Trash, reads the sender and subject of spam, and deletes.

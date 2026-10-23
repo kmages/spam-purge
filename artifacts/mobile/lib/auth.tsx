@@ -21,7 +21,7 @@ const redemptions = new Map<string, Promise<string | null>>();
 
 const SIGN_IN_ERRORS: Record<string, string> = {
   oauth_denied: 'Google sign-in was cancelled.',
-  gmail_scope_missing: 'SPAM Purge needs permission to manage your Gmail. Sign in again and leave the Gmail box ticked.',
+  gmail_scope_missing: 'The Gmail box was not ticked on Google\'s permissions screen. Connect again, and tick "Read, compose, send and permanently delete all your email" (or Select all) before tapping Continue.',
   no_refresh_token: 'Google did not grant ongoing access. Sign in again.',
   oauth_state: 'Sign-in expired. Please try again.',
   oauth_failed: 'Sign-in failed. Please try again.',
