@@ -7,12 +7,12 @@
     "preview": {
       "distribution": "internal",
       "android": { "buildType": "apk" },
-      "env": { "EXPO_PUBLIC_DOMAIN": "spampurge.5-161-180-197.nip.io" },
+      "env": { "EXPO_PUBLIC_DOMAIN": "spam-purge.com" },
       "node": "24.21.0"
     },
     "production": {
       "autoIncrement": false,
-      "env": { "EXPO_PUBLIC_DOMAIN": "spampurge.5-161-180-197.nip.io" },
+      "env": { "EXPO_PUBLIC_DOMAIN": "spam-purge.com" },
       "node": "24.21.0"
     }
   },

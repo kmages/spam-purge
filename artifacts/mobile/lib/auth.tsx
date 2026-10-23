@@ -8,7 +8,7 @@ import { exchangeMobileCode, logout, setAuthTokenGetter, setBaseUrl } from '@wor
 const TOKEN_KEY = 'spampurge.token';
 const REDIRECT_URI = 'spampurge://auth';
 
-export const API_ORIGIN = `https://${process.env.EXPO_PUBLIC_DOMAIN ?? 'spampurge.5-161-180-197.nip.io'}`;
+export const API_ORIGIN = `https://${process.env.EXPO_PUBLIC_DOMAIN ?? 'spam-purge.com'}`;
 setBaseUrl(API_ORIGIN);
 
 // The API client reads the token through this module-level slot so every request picks up sign-in and sign-out at once.
