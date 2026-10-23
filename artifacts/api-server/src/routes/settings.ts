@@ -1,79 +1,76 @@
 import { Router } from "express";
-import { db, appSettingsTable } from "@workspace/db";
+import { db, usersTable, type User } from "@workspace/db";
 import { eq } from "drizzle-orm";
-import { getStoredRefreshToken, persistRefreshToken } from "../lib/account";
+import { requireUser } from "../lib/session";
 
 const router = Router();
 
 export const MIN_INTERVAL_MINUTES = 1;
 export const MAX_INTERVAL_MINUTES = 1440;
+export const MAX_SPAM_DELAY_MINUTES = 7 * 24 * 60;
 
-function requireAuth(req: any, res: any, next: any) {
-  const session = req.session as any;
-  if (!session.tokens) {
-    res.status(401).json({ error: "Not authenticated" });
-    return;
-  }
-  next();
-}
-
-async function getOrCreateSettings() {
-  const rows = await db.select().from(appSettingsTable).limit(1);
-  if (rows.length > 0) return rows[0];
-  const [created] = await db.insert(appSettingsTable).values({}).returning();
-  return created;
-}
-
-function serialize(s: { autoPurgeEnabled: boolean; autoPurgeIntervalMinutes: number; lastRunAt: Date | null }) {
+function serialize(u: User) {
   return {
-    autoPurgeEnabled: s.autoPurgeEnabled,
-    autoPurgeIntervalMinutes: s.autoPurgeIntervalMinutes,
-    lastRunAt: s.lastRunAt ? s.lastRunAt.toISOString() : null,
+    autoPurgeEnabled: u.autoPurgeEnabled,
+    autoPurgeIntervalMinutes: u.autoPurgeIntervalMinutes,
+    lastRunAt: u.lastRunAt ? u.lastRunAt.toISOString() : null,
     minIntervalMinutes: MIN_INTERVAL_MINUTES,
     maxIntervalMinutes: MAX_INTERVAL_MINUTES,
+    purgeSpam: u.purgeSpam,
+    purgeTrash: u.purgeTrash,
+    spamDelayMinutes: u.spamDelayMinutes,
+    maxSpamDelayMinutes: MAX_SPAM_DELAY_MINUTES,
   };
 }
 
-router.get("/settings", requireAuth, async (req, res) => {
-  try {
-    const settings = await getOrCreateSettings();
-    res.json(serialize(settings));
-  } catch (err) {
-    req.log.error({ err }, "Failed to get settings");
-    res.status(500).json({ error: "Failed to fetch settings" });
-  }
+function clampInt(value: unknown, min: number, max: number, fallback: number): number {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.min(max, Math.max(min, Math.round(n)));
+}
+
+router.get("/settings", requireUser, (req, res) => {
+  res.json(serialize(req.user!));
 });
 
-router.put("/settings", requireAuth, async (req, res) => {
-  const session = req.session as any;
+// Fields left out of the body keep their current values.
+router.put("/settings", requireUser, async (req, res) => {
+  const user = req.user!;
   try {
     const body = req.body ?? {};
-    const enabled = Boolean(body.autoPurgeEnabled);
+    const enabled = body.autoPurgeEnabled === undefined ? user.autoPurgeEnabled : Boolean(body.autoPurgeEnabled);
 
-    let interval = Number(body.autoPurgeIntervalMinutes);
-    if (!Number.isFinite(interval)) interval = 60;
-    interval = Math.min(MAX_INTERVAL_MINUTES, Math.max(MIN_INTERVAL_MINUTES, Math.round(interval)));
-
-    if (enabled) {
-      let refreshToken = await getStoredRefreshToken();
-      if (!refreshToken && session.tokens?.refresh_token) {
-        await persistRefreshToken(session.tokens.refresh_token, session.userInfo);
-        refreshToken = session.tokens.refresh_token;
-      }
-      if (!refreshToken) {
-        res.status(400).json({
-          error: "no_refresh_token",
-          message: "Please disconnect and reconnect Gmail to enable automatic purging.",
-        });
-        return;
-      }
+    if (enabled && !user.riskAcceptedAt) {
+      res.status(403).json({
+        error: "risk_not_accepted",
+        message: "Purged mail is deleted permanently, including real mail Gmail misfiles as spam. Accept this first.",
+      });
+      return;
+    }
+    if (enabled && !user.refreshTokenEnc) {
+      res.status(400).json({
+        error: "no_refresh_token",
+        message: "Please disconnect and reconnect Gmail to enable automatic purging.",
+      });
+      return;
     }
 
-    const settings = await getOrCreateSettings();
     const [updated] = await db
-      .update(appSettingsTable)
-      .set({ autoPurgeEnabled: enabled, autoPurgeIntervalMinutes: interval, updatedAt: new Date() })
-      .where(eq(appSettingsTable.id, settings.id))
+      .update(usersTable)
+      .set({
+        autoPurgeEnabled: enabled,
+        autoPurgeIntervalMinutes: clampInt(
+          body.autoPurgeIntervalMinutes,
+          MIN_INTERVAL_MINUTES,
+          MAX_INTERVAL_MINUTES,
+          user.autoPurgeIntervalMinutes,
+        ),
+        purgeSpam: body.purgeSpam === undefined ? user.purgeSpam : Boolean(body.purgeSpam),
+        purgeTrash: body.purgeTrash === undefined ? user.purgeTrash : Boolean(body.purgeTrash),
+        spamDelayMinutes: clampInt(body.spamDelayMinutes, 0, MAX_SPAM_DELAY_MINUTES, user.spamDelayMinutes),
+        updatedAt: new Date(),
+      })
+      .where(eq(usersTable.id, user.id))
       .returning();
 
     res.json(serialize(updated));

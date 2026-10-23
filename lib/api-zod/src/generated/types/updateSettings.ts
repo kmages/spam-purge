@@ -6,7 +6,13 @@
  * OpenAPI spec version: 0.1.0
  */
 
+/**
+ * Fields left out keep their current values
+ */
 export interface UpdateSettings {
-  autoPurgeEnabled: boolean;
-  autoPurgeIntervalMinutes: number;
+  autoPurgeEnabled?: boolean;
+  autoPurgeIntervalMinutes?: number;
+  purgeSpam?: boolean;
+  purgeTrash?: boolean;
+  spamDelayMinutes?: number;
 }

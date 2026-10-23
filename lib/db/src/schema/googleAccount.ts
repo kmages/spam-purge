@@ -1,3 +1,4 @@
+// Legacy single-user table. Read once at startup by lib/legacy.ts to migrate into users, then unused.
 import { pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
 
 export const googleAccountTable = pgTable("google_account", {

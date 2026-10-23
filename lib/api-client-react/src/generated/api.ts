@@ -20,11 +20,17 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AllowlistEntry,
   AuthStatus,
   DisconnectResult,
   HealthStatus,
+  MobileTokenRequest,
+  MobileTokenResult,
+  NewAllowlistEntry,
   PurgeRecord,
   PurgeResult,
+  PurgedMessage,
+  RiskAcceptance,
   Settings,
   SpamCount,
   UpdateSettings
@@ -197,6 +203,147 @@ export function useGetAuthStatus<TData = Awaited<ReturnType<typeof getAuthStatus
 
 
 
+export const getExchangeMobileCodeUrl = () => {
+
+
+
+
+  return `/api/auth/mobile/token`
+}
+
+/**
+ * @summary Trade a one-time mobile sign-in code and PKCE verifier for a Bearer token
+ */
+export const exchangeMobileCode = async (mobileTokenRequest: MobileTokenRequest, options?: RequestInit): Promise<MobileTokenResult> => {
+
+  return customFetch<MobileTokenResult>(getExchangeMobileCodeUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      mobileTokenRequest,)
+  }
+);}
+
+
+
+
+export const getExchangeMobileCodeMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof exchangeMobileCode>>, TError,{data: BodyType<MobileTokenRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof exchangeMobileCode>>, TError,{data: BodyType<MobileTokenRequest>}, TContext> => {
+
+const mutationKey = ['exchangeMobileCode'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof exchangeMobileCode>>, {data: BodyType<MobileTokenRequest>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  exchangeMobileCode(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ExchangeMobileCodeMutationResult = NonNullable<Awaited<ReturnType<typeof exchangeMobileCode>>>
+    export type ExchangeMobileCodeMutationBody = BodyType<MobileTokenRequest>
+    export type ExchangeMobileCodeMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Trade a one-time mobile sign-in code and PKCE verifier for a Bearer token
+ */
+export const useExchangeMobileCode = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof exchangeMobileCode>>, TError,{data: BodyType<MobileTokenRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof exchangeMobileCode>>,
+        TError,
+        {data: BodyType<MobileTokenRequest>},
+        TContext
+      > => {
+      return useMutation(getExchangeMobileCodeMutationOptions(options));
+    }
+
+export const getLogoutUrl = () => {
+
+
+
+
+  return `/api/auth/logout`
+}
+
+/**
+ * @summary Sign out this browser or device. Auto-purge keeps running.
+ */
+export const logout = async ( options?: RequestInit): Promise<DisconnectResult> => {
+
+  return customFetch<DisconnectResult>(getLogoutUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getLogoutMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError,void, TContext> => {
+
+const mutationKey = ['logout'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof logout>>, void> = () => {
+
+
+          return  logout(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type LogoutMutationResult = NonNullable<Awaited<ReturnType<typeof logout>>>
+
+    export type LogoutMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Sign out this browser or device. Auto-purge keeps running.
+ */
+export const useLogout = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof logout>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getLogoutMutationOptions(options));
+    }
+
 export const getDisconnectAuthUrl = () => {
 
 
@@ -206,7 +353,7 @@ export const getDisconnectAuthUrl = () => {
 }
 
 /**
- * @summary Disconnect Gmail account
+ * @summary Stop all purging, revoke Google access and sign out every device
  */
 export const disconnectAuth = async ( options?: RequestInit): Promise<DisconnectResult> => {
 
@@ -254,7 +401,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type DisconnectAuthMutationError = ErrorType<unknown>
 
     /**
- * @summary Disconnect Gmail account
+ * @summary Stop all purging, revoke Google access and sign out every device
  */
 export const useDisconnectAuth = <TError = ErrorType<unknown>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof disconnectAuth>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
@@ -414,6 +561,83 @@ export const usePurgeSpam = <TError = ErrorType<unknown>,
       > => {
       return useMutation(getPurgeSpamMutationOptions(options));
     }
+
+export const getGetPurgeLogUrl = () => {
+
+
+
+
+  return `/api/spam/log`
+}
+
+/**
+ * @summary Sender and subject of spam purged in the last 30 days
+ */
+export const getPurgeLog = async ( options?: RequestInit): Promise<PurgedMessage[]> => {
+
+  return customFetch<PurgedMessage[]>(getGetPurgeLogUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPurgeLogQueryKey = () => {
+    return [
+    `/api/spam/log`
+    ] as const;
+    }
+
+
+export const getGetPurgeLogQueryOptions = <TData = Awaited<ReturnType<typeof getPurgeLog>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPurgeLog>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPurgeLogQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPurgeLog>>> = ({ signal }) => getPurgeLog({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPurgeLog>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPurgeLogQueryResult = NonNullable<Awaited<ReturnType<typeof getPurgeLog>>>
+export type GetPurgeLogQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Sender and subject of spam purged in the last 30 days
+ */
+
+export function useGetPurgeLog<TData = Awaited<ReturnType<typeof getPurgeLog>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPurgeLog>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPurgeLogQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
 export const getGetPurgeHistoryUrl = () => {
 
@@ -641,5 +865,363 @@ export const useUpdateSettings = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getUpdateSettingsMutationOptions(options));
+    }
+
+export const getGetAllowlistUrl = () => {
+
+
+
+
+  return `/api/allowlist`
+}
+
+/**
+ * @summary List allowlisted senders and domains
+ */
+export const getAllowlist = async ( options?: RequestInit): Promise<AllowlistEntry[]> => {
+
+  return customFetch<AllowlistEntry[]>(getGetAllowlistUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAllowlistQueryKey = () => {
+    return [
+    `/api/allowlist`
+    ] as const;
+    }
+
+
+export const getGetAllowlistQueryOptions = <TData = Awaited<ReturnType<typeof getAllowlist>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAllowlist>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAllowlistQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllowlist>>> = ({ signal }) => getAllowlist({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAllowlist>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAllowlistQueryResult = NonNullable<Awaited<ReturnType<typeof getAllowlist>>>
+export type GetAllowlistQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List allowlisted senders and domains
+ */
+
+export function useGetAllowlist<TData = Awaited<ReturnType<typeof getAllowlist>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAllowlist>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAllowlistQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getAddAllowlistEntryUrl = () => {
+
+
+
+
+  return `/api/allowlist`
+}
+
+/**
+ * @summary Allowlist an email address or a domain
+ */
+export const addAllowlistEntry = async (newAllowlistEntry: NewAllowlistEntry, options?: RequestInit): Promise<AllowlistEntry> => {
+
+  return customFetch<AllowlistEntry>(getAddAllowlistEntryUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      newAllowlistEntry,)
+  }
+);}
+
+
+
+
+export const getAddAllowlistEntryMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addAllowlistEntry>>, TError,{data: BodyType<NewAllowlistEntry>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof addAllowlistEntry>>, TError,{data: BodyType<NewAllowlistEntry>}, TContext> => {
+
+const mutationKey = ['addAllowlistEntry'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addAllowlistEntry>>, {data: BodyType<NewAllowlistEntry>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  addAllowlistEntry(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AddAllowlistEntryMutationResult = NonNullable<Awaited<ReturnType<typeof addAllowlistEntry>>>
+    export type AddAllowlistEntryMutationBody = BodyType<NewAllowlistEntry>
+    export type AddAllowlistEntryMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Allowlist an email address or a domain
+ */
+export const useAddAllowlistEntry = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addAllowlistEntry>>, TError,{data: BodyType<NewAllowlistEntry>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof addAllowlistEntry>>,
+        TError,
+        {data: BodyType<NewAllowlistEntry>},
+        TContext
+      > => {
+      return useMutation(getAddAllowlistEntryMutationOptions(options));
+    }
+
+export const getDeleteAllowlistEntryUrl = (id: number,) => {
+
+
+
+
+  return `/api/allowlist/${id}`
+}
+
+/**
+ * @summary Remove an allowlist entry
+ */
+export const deleteAllowlistEntry = async (id: number, options?: RequestInit): Promise<DisconnectResult> => {
+
+  return customFetch<DisconnectResult>(getDeleteAllowlistEntryUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteAllowlistEntryMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAllowlistEntry>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteAllowlistEntry>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteAllowlistEntry'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteAllowlistEntry>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteAllowlistEntry(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteAllowlistEntryMutationResult = NonNullable<Awaited<ReturnType<typeof deleteAllowlistEntry>>>
+
+    export type DeleteAllowlistEntryMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Remove an allowlist entry
+ */
+export const useDeleteAllowlistEntry = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAllowlistEntry>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteAllowlistEntry>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteAllowlistEntryMutationOptions(options));
+    }
+
+export const getAcceptRiskUrl = () => {
+
+
+
+
+  return `/api/account/accept-risk`
+}
+
+/**
+ * @summary Acknowledge that purged mail, including misfiled real mail, is gone forever
+ */
+export const acceptRisk = async ( options?: RequestInit): Promise<RiskAcceptance> => {
+
+  return customFetch<RiskAcceptance>(getAcceptRiskUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getAcceptRiskMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acceptRisk>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof acceptRisk>>, TError,void, TContext> => {
+
+const mutationKey = ['acceptRisk'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof acceptRisk>>, void> = () => {
+
+
+          return  acceptRisk(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AcceptRiskMutationResult = NonNullable<Awaited<ReturnType<typeof acceptRisk>>>
+
+    export type AcceptRiskMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Acknowledge that purged mail, including misfiled real mail, is gone forever
+ */
+export const useAcceptRisk = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acceptRisk>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof acceptRisk>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getAcceptRiskMutationOptions(options));
+    }
+
+export const getDeleteAccountUrl = () => {
+
+
+
+
+  return `/api/account`
+}
+
+/**
+ * @summary Delete the account and everything stored for it, and revoke Google access
+ */
+export const deleteAccount = async ( options?: RequestInit): Promise<DisconnectResult> => {
+
+  return customFetch<DisconnectResult>(getDeleteAccountUrl(),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteAccountMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAccount>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteAccount>>, TError,void, TContext> => {
+
+const mutationKey = ['deleteAccount'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteAccount>>, void> = () => {
+
+
+          return  deleteAccount(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteAccountMutationResult = NonNullable<Awaited<ReturnType<typeof deleteAccount>>>
+
+    export type DeleteAccountMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete the account and everything stored for it, and revoke Google access
+ */
+export const useDeleteAccount = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAccount>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteAccount>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getDeleteAccountMutationOptions(options));
     }
 

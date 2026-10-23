@@ -24,12 +24,34 @@ export const GetAuthStatusResponse = zod.object({
   "connected": zod.boolean(),
   "email": zod.string().nullish(),
   "name": zod.string().nullish(),
-  "picture": zod.string().nullish()
+  "picture": zod.string().nullish(),
+  "riskAccepted": zod.boolean().optional()
 })
 
 
 /**
- * @summary Disconnect Gmail account
+ * @summary Trade a one-time mobile sign-in code and PKCE verifier for a Bearer token
+ */
+export const ExchangeMobileCodeBody = zod.object({
+  "code": zod.string(),
+  "code_verifier": zod.string()
+})
+
+export const ExchangeMobileCodeResponse = zod.object({
+  "token": zod.string()
+})
+
+
+/**
+ * @summary Sign out this browser or device. Auto-purge keeps running.
+ */
+export const LogoutResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
+ * @summary Stop all purging, revoke Google access and sign out every device
  */
 export const DisconnectAuthResponse = zod.object({
   "success": zod.boolean()
@@ -40,7 +62,9 @@ export const DisconnectAuthResponse = zod.object({
  * @summary Get current spam message count
  */
 export const GetSpamCountResponse = zod.object({
-  "count": zod.number(),
+  "count": zod.number().describe('Messages the current settings would purge'),
+  "spam": zod.number().optional(),
+  "trash": zod.number().optional(),
   "sizeBytes": zod.number().nullish()
 })
 
@@ -52,8 +76,24 @@ export const GetSpamCountResponse = zod.object({
 export const PurgeSpamResponse = zod.object({
   "deleted": zod.number(),
   "success": zod.boolean(),
-  "message": zod.string().nullish()
+  "message": zod.string().nullish(),
+  "spamDeleted": zod.number().optional(),
+  "trashDeleted": zod.number().optional(),
+  "spamKept": zod.number().optional().describe('Spam left in place by the allowlist or the delay window'),
+  "durationMs": zod.number().optional()
 })
+
+
+/**
+ * @summary Sender and subject of spam purged in the last 30 days
+ */
+export const GetPurgeLogResponseItem = zod.object({
+  "id": zod.number(),
+  "sender": zod.string().nullish(),
+  "subject": zod.string().nullish(),
+  "purgedAt": zod.coerce.date()
+})
+export const GetPurgeLogResponse = zod.array(GetPurgeLogResponseItem)
 
 
 /**
@@ -79,7 +119,11 @@ export const GetSettingsResponse = zod.object({
   "autoPurgeIntervalMinutes": zod.number(),
   "lastRunAt": zod.coerce.date().nullish(),
   "minIntervalMinutes": zod.number(),
-  "maxIntervalMinutes": zod.number()
+  "maxIntervalMinutes": zod.number(),
+  "purgeSpam": zod.boolean().optional(),
+  "purgeTrash": zod.boolean().optional(),
+  "spamDelayMinutes": zod.number().optional(),
+  "maxSpamDelayMinutes": zod.number().optional()
 })
 
 
@@ -88,16 +132,77 @@ export const GetSettingsResponse = zod.object({
  * @summary Update application settings
  */
 export const UpdateSettingsBody = zod.object({
-  "autoPurgeEnabled": zod.boolean(),
-  "autoPurgeIntervalMinutes": zod.number()
-})
+  "autoPurgeEnabled": zod.boolean().optional(),
+  "autoPurgeIntervalMinutes": zod.number().optional(),
+  "purgeSpam": zod.boolean().optional(),
+  "purgeTrash": zod.boolean().optional(),
+  "spamDelayMinutes": zod.number().optional()
+}).describe('Fields left out keep their current values')
 
 export const UpdateSettingsResponse = zod.object({
   "autoPurgeEnabled": zod.boolean(),
   "autoPurgeIntervalMinutes": zod.number(),
   "lastRunAt": zod.coerce.date().nullish(),
   "minIntervalMinutes": zod.number(),
-  "maxIntervalMinutes": zod.number()
+  "maxIntervalMinutes": zod.number(),
+  "purgeSpam": zod.boolean().optional(),
+  "purgeTrash": zod.boolean().optional(),
+  "spamDelayMinutes": zod.number().optional(),
+  "maxSpamDelayMinutes": zod.number().optional()
+})
+
+
+/**
+ * @summary List allowlisted senders and domains
+ */
+export const GetAllowlistResponseItem = zod.object({
+  "id": zod.number(),
+  "pattern": zod.string(),
+  "createdAt": zod.coerce.date()
+})
+export const GetAllowlistResponse = zod.array(GetAllowlistResponseItem)
+
+
+/**
+ * @summary Allowlist an email address or a domain
+ */
+export const AddAllowlistEntryBody = zod.object({
+  "pattern": zod.string().describe('An email address, or a domain that also covers its subdomains')
+})
+
+export const AddAllowlistEntryResponse = zod.object({
+  "id": zod.number(),
+  "pattern": zod.string(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Remove an allowlist entry
+ */
+export const DeleteAllowlistEntryParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteAllowlistEntryResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
+ * @summary Acknowledge that purged mail, including misfiled real mail, is gone forever
+ */
+export const AcceptRiskResponse = zod.object({
+  "riskAccepted": zod.boolean(),
+  "riskAcceptedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Delete the account and everything stored for it, and revoke Google access
+ */
+export const DeleteAccountResponse = zod.object({
+  "success": zod.boolean()
 })
 
 

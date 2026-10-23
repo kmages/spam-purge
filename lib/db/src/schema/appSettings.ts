@@ -1,3 +1,4 @@
+// Legacy single-user table. Read once at startup by lib/legacy.ts to migrate into users, then unused.
 import { pgTable, serial, boolean, integer, timestamp } from "drizzle-orm/pg-core";
 
 export const appSettingsTable = pgTable("app_settings", {

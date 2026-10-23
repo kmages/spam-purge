@@ -11,4 +11,9 @@ export interface PurgeResult {
   success: boolean;
   /** @nullable */
   message?: string | null;
+  spamDeleted?: number;
+  trashDeleted?: number;
+  /** Spam left in place by the allowlist or the delay window */
+  spamKept?: number;
+  durationMs?: number;
 }

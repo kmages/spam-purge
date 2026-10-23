@@ -1,9 +1,12 @@
 import { pgTable, serial, integer, text, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
+import { usersTable } from "./users";
 
 export const purgeRecordsTable = pgTable("purge_records", {
   id: serial("id").primaryKey(),
+  // Null only for records written before multi-user support.
+  userId: integer("user_id").references(() => usersTable.id, { onDelete: "cascade" }),
   deletedCount: integer("deleted_count").notNull(),
   durationMs: integer("duration_ms"),
   source: text("source").notNull().default("manual"),

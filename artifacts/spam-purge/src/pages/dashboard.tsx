@@ -1,4 +1,4 @@
-import { useGetAuthStatus, useGetSpamCount, usePurgeSpam, useGetPurgeHistory, useDisconnectAuth, useGetSettings, useUpdateSettings, getGetSpamCountQueryKey, getGetPurgeHistoryQueryKey, getGetAuthStatusQueryKey, getGetSettingsQueryKey } from "@workspace/api-client-react";
+import { useGetAuthStatus, useGetSpamCount, usePurgeSpam, useGetPurgeHistory, useLogout, useAcceptRisk, useGetSettings, useUpdateSettings, getGetSpamCountQueryKey, getGetPurgeHistoryQueryKey, getGetAuthStatusQueryKey, getGetSettingsQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { format } from "date-fns";
@@ -24,7 +24,8 @@ export default function DashboardPage() {
   
   const { data: settings } = useGetSettings();
   const purgeSpam = usePurgeSpam();
-  const disconnectAuth = useDisconnectAuth();
+  const logout = useLogout();
+  const acceptRisk = useAcceptRisk();
   const updateSettings = useUpdateSettings();
 
   const [autoEnabled, setAutoEnabled] = useState(false);
@@ -115,8 +116,20 @@ export default function DashboardPage() {
     });
   };
 
-  const handleDisconnect = () => {
-    disconnectAuth.mutate(undefined, {
+  const handleAcceptRisk = () => {
+    acceptRisk.mutate(undefined, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getGetAuthStatusQueryKey() });
+      },
+      onError: () => {
+        toast({ variant: "destructive", title: "Could not save", description: "Please try again." });
+      },
+    });
+  };
+
+  // Signs out this browser only. Auto-purge keeps running on the server.
+  const handleSignOut = () => {
+    logout.mutate(undefined, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getGetAuthStatusQueryKey() });
         setLocation("/");
@@ -157,7 +170,7 @@ export default function DashboardPage() {
                 </Avatar>
               </div>
             )}
-            <Button variant="outline" size="sm" onClick={handleDisconnect} disabled={disconnectAuth.isPending} title="Disconnect" className="gap-2 text-muted-foreground hover:text-destructive">
+            <Button variant="outline" size="sm" onClick={handleSignOut} disabled={logout.isPending} title="Sign out" className="gap-2 text-muted-foreground hover:text-destructive">
               <LogOut className="w-4 h-4" />
               <span>Sign out</span>
             </Button>
@@ -166,6 +179,26 @@ export default function DashboardPage() {
       </header>
 
       <main className="flex-1 w-full max-w-5xl mx-auto px-4 py-8 md:py-12 flex flex-col gap-12">
+        {auth?.connected && !auth.riskAccepted && (
+          <Card className="border-destructive/50">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-5 h-5 text-destructive" />
+                <CardTitle>Read this before you purge</CardTitle>
+              </div>
+              <CardDescription className="text-base text-foreground/80 space-y-2">
+                <span className="block">SPAM Purge permanently deletes everything in your Gmail Spam and Trash. There is no undo.</span>
+                <span className="block">Gmail's filter sometimes gets it wrong. If something you need lands in Spam, it will be gone forever.</span>
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button variant="destructive" onClick={handleAcceptRisk} disabled={acceptRisk.isPending}>
+                I understand. Deleted means gone forever.
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Main Action Section */}
         <section className="flex flex-col items-center justify-center py-12">
           {isSpamCountLoading ? (
@@ -197,7 +230,7 @@ export default function DashboardPage() {
 
               <button
                 onClick={handlePurge}
-                disabled={purgeSpam.isPending}
+                disabled={purgeSpam.isPending || !auth?.riskAccepted}
                 className="w-full relative group h-20 rounded-xl bg-destructive text-destructive-foreground font-bold text-xl md:text-2xl overflow-hidden transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none shadow-[0_0_40px_-10px_rgba(255,0,0,0.5)] hover:shadow-[0_0_60px_-15px_rgba(255,0,0,0.7)]"
               >
                 <div className="absolute inset-0 bg-black/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
@@ -241,7 +274,7 @@ export default function DashboardPage() {
                   id="auto-toggle"
                   checked={autoEnabled}
                   onCheckedChange={handleToggleAuto}
-                  disabled={updateSettings.isPending}
+                  disabled={updateSettings.isPending || (!autoEnabled && !auth?.riskAccepted)}
                 />
               </div>
 

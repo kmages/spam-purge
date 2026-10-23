@@ -17,6 +17,41 @@ export interface AuthStatus {
   name?: string | null;
   /** @nullable */
   picture?: string | null;
+  riskAccepted?: boolean;
+}
+
+export interface MobileTokenRequest {
+  code: string;
+  code_verifier: string;
+}
+
+export interface MobileTokenResult {
+  token: string;
+}
+
+export interface RiskAcceptance {
+  riskAccepted: boolean;
+  riskAcceptedAt: string;
+}
+
+export interface AllowlistEntry {
+  id: number;
+  pattern: string;
+  createdAt: string;
+}
+
+export interface NewAllowlistEntry {
+  /** An email address, or a domain that also covers its subdomains */
+  pattern: string;
+}
+
+export interface PurgedMessage {
+  id: number;
+  /** @nullable */
+  sender?: string | null;
+  /** @nullable */
+  subject?: string | null;
+  purgedAt: string;
 }
 
 export interface DisconnectResult {
@@ -24,7 +59,10 @@ export interface DisconnectResult {
 }
 
 export interface SpamCount {
+  /** Messages the current settings would purge */
   count: number;
+  spam?: number;
+  trash?: number;
   /** @nullable */
   sizeBytes?: number | null;
 }
@@ -34,6 +72,11 @@ export interface PurgeResult {
   success: boolean;
   /** @nullable */
   message?: string | null;
+  spamDeleted?: number;
+  trashDeleted?: number;
+  /** Spam left in place by the allowlist or the delay window */
+  spamKept?: number;
+  durationMs?: number;
 }
 
 export interface PurgeRecord {
@@ -52,10 +95,20 @@ export interface Settings {
   lastRunAt?: string | null;
   minIntervalMinutes: number;
   maxIntervalMinutes: number;
+  purgeSpam?: boolean;
+  purgeTrash?: boolean;
+  spamDelayMinutes?: number;
+  maxSpamDelayMinutes?: number;
 }
 
+/**
+ * Fields left out keep their current values
+ */
 export interface UpdateSettings {
-  autoPurgeEnabled: boolean;
-  autoPurgeIntervalMinutes: number;
+  autoPurgeEnabled?: boolean;
+  autoPurgeIntervalMinutes?: number;
+  purgeSpam?: boolean;
+  purgeTrash?: boolean;
+  spamDelayMinutes?: number;
 }
 

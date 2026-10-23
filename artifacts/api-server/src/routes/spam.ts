@@ -1,50 +1,59 @@
 import { Router } from "express";
-import { db, purgeRecordsTable } from "@workspace/db";
-import { desc } from "drizzle-orm";
-import { oauthClientFromTokens } from "../lib/google";
-import { countSpam, purgeAllSpam } from "../lib/purge";
+import { db, purgeRecordsTable, purgedMessagesTable } from "@workspace/db";
+import { desc, eq } from "drizzle-orm";
+import { isInvalidGrant } from "../lib/google";
+import { markCredentialInvalid } from "../lib/users";
+import { countPurgeable, purgeForUser, NotConnectedError } from "../lib/purge";
+import { requireUser, requireRiskAccepted } from "../lib/session";
 
 const router = Router();
 
-function requireAuth(req: any, res: any, next: any) {
-  const session = req.session as any;
-  if (!session.tokens) {
-    res.status(401).json({ error: "Not authenticated" });
+const LOG_LIMIT = 200;
+
+function gmailFailure(err: unknown, userId: number, res: any, fallback: string): Promise<void> | void {
+  if (err instanceof NotConnectedError) {
+    res.status(409).json({ error: "not_connected", message: "Reconnect Gmail to continue." });
     return;
   }
-  next();
+  if (isInvalidGrant(err)) {
+    res.status(409).json({ error: "not_connected", message: "Google access was revoked. Reconnect Gmail to continue." });
+    return markCredentialInvalid(userId);
+  }
+  res.status(500).json({ error: fallback });
 }
 
-router.get("/spam/count", requireAuth, async (req, res) => {
-  const session = req.session as any;
+router.get("/spam/count", requireUser, async (req, res) => {
   try {
-    const auth = oauthClientFromTokens(session.tokens);
-    const count = await countSpam(auth);
-    res.json({ count, sizeBytes: null });
+    const counts = await countPurgeable(req.user!);
+    res.json({ ...counts, sizeBytes: null });
   } catch (err) {
     req.log.error({ err }, "Failed to get spam count");
-    res.status(500).json({ error: "Failed to fetch spam count" });
+    await gmailFailure(err, req.user!.id, res, "Failed to fetch spam count");
   }
 });
 
-router.post("/spam/purge", requireAuth, async (req, res) => {
-  const session = req.session as any;
+router.post("/spam/purge", requireUser, requireRiskAccepted, async (req, res) => {
   try {
-    const auth = oauthClientFromTokens(session.tokens);
-    const { deleted } = await purgeAllSpam(auth, "manual");
-    req.log.info({ deleted }, "Spam & trash purge complete");
-    res.json({ deleted, success: true, message: `Permanently deleted ${deleted} spam & trash message${deleted !== 1 ? "s" : ""}` });
+    const outcome = await purgeForUser(req.user!, "manual");
+    req.log.info({ userId: req.user!.id, ...outcome }, "Spam & trash purge complete");
+    const { deleted } = outcome;
+    res.json({
+      ...outcome,
+      success: true,
+      message: `Permanently deleted ${deleted} spam & trash message${deleted !== 1 ? "s" : ""}`,
+    });
   } catch (err) {
     req.log.error({ err }, "Failed to purge spam");
-    res.status(500).json({ error: "Failed to purge spam" });
+    await gmailFailure(err, req.user!.id, res, "Failed to purge spam");
   }
 });
 
-router.get("/spam/history", requireAuth, async (req, res) => {
+router.get("/spam/history", requireUser, async (req, res) => {
   try {
     const records = await db
       .select()
       .from(purgeRecordsTable)
+      .where(eq(purgeRecordsTable.userId, req.user!.id))
       .orderBy(desc(purgeRecordsTable.purgedAt))
       .limit(20);
 
@@ -58,6 +67,22 @@ router.get("/spam/history", requireAuth, async (req, res) => {
   } catch (err) {
     req.log.error({ err }, "Failed to get purge history");
     res.status(500).json({ error: "Failed to fetch purge history" });
+  }
+});
+
+// Sender and subject of spam purged in the last 30 days, newest first.
+router.get("/spam/log", requireUser, async (req, res) => {
+  try {
+    const rows = await db
+      .select()
+      .from(purgedMessagesTable)
+      .where(eq(purgedMessagesTable.userId, req.user!.id))
+      .orderBy(desc(purgedMessagesTable.purgedAt))
+      .limit(LOG_LIMIT);
+    res.json(rows.map((r) => ({ id: r.id, sender: r.sender, subject: r.subject, purgedAt: r.purgedAt.toISOString() })));
+  } catch (err) {
+    req.log.error({ err }, "Failed to get purge log");
+    res.status(500).json({ error: "Failed to fetch purge log" });
   }
 });
 

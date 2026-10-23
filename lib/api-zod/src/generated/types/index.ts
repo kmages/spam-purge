@@ -6,11 +6,17 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './allowlistEntry';
 export * from './authStatus';
 export * from './disconnectResult';
 export * from './healthStatus';
+export * from './mobileTokenRequest';
+export * from './mobileTokenResult';
+export * from './newAllowlistEntry';
+export * from './purgedMessage';
 export * from './purgeRecord';
 export * from './purgeResult';
+export * from './riskAcceptance';
 export * from './settings';
 export * from './spamCount';
 export * from './updateSettings';

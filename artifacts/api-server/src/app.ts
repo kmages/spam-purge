@@ -1,6 +1,7 @@
 import path from "node:path";
 import express, { type Express } from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import session from "express-session";
 import pinoHttp from "pino-http";
 import router from "./routes";
@@ -30,13 +31,18 @@ app.use(
   }),
 );
 
+// The web app is same-origin and the mobile apps are not browsers, so cross-origin access is
+// limited to the configured domain. Reflecting any origin would let other sites read a signed-in user's data.
 app.use(
   cors({
-    origin: true,
+    origin: process.env.DOMAIN ? [`https://${process.env.DOMAIN}`] : true,
     credentials: true,
   }),
 );
 
+app.use(cookieParser());
+
+// express-session only carries OAuth state across the Google redirect. Sign-in itself uses api_tokens.
 app.use(
   session({
     secret: process.env.SESSION_SECRET ?? "dev-secret-change-me",
@@ -46,7 +52,7 @@ app.use(
       secure: process.env.NODE_ENV === "production",
       httpOnly: true,
       sameSite: "lax",
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      maxAge: 15 * 60 * 1000, // long enough to finish the Google consent screen
     },
   }),
 );

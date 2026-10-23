@@ -13,4 +13,8 @@ export interface Settings {
   lastRunAt?: Date | null;
   minIntervalMinutes: number;
   maxIntervalMinutes: number;
+  purgeSpam?: boolean;
+  purgeTrash?: boolean;
+  spamDelayMinutes?: number;
+  maxSpamDelayMinutes?: number;
 }

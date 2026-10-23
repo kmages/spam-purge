@@ -16,6 +16,10 @@ tags:
     description: Spam management
   - name: settings
     description: Application settings
+  - name: allowlist
+    description: Senders whose spam is never purged
+  - name: account
+    description: Account consent and deletion
 paths:
   /healthz:
     get:
@@ -44,11 +48,43 @@ paths:
               schema:
                 $ref: "#/components/schemas/AuthStatus"
 
+  /auth/mobile/token:
+    post:
+      operationId: exchangeMobileCode
+      tags: [auth]
+      summary: Trade a one-time mobile sign-in code and PKCE verifier for a Bearer token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MobileTokenRequest"
+      responses:
+        "200":
+          description: Bearer token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MobileTokenResult"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Sign out this browser or device. Auto-purge keeps running.
+      responses:
+        "200":
+          description: Signed out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DisconnectResult"
+
   /auth/disconnect:
     post:
       operationId: disconnectAuth
       tags: [auth]
-      summary: Disconnect Gmail account
+      summary: Stop all purging, revoke Google access and sign out every device
       responses:
         "200":
           description: Disconnected
@@ -83,6 +119,21 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PurgeResult"
+
+  /spam/log:
+    get:
+      operationId: getPurgeLog
+      tags: [spam]
+      summary: Sender and subject of spam purged in the last 30 days
+      responses:
+        "200":
+          description: Purged spam, newest first
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PurgedMessage"
 
   /spam/history:
     get:
@@ -132,6 +183,89 @@ paths:
               schema:
                 $ref: "#/components/schemas/Settings"
 
+  /allowlist:
+    get:
+      operationId: getAllowlist
+      tags: [allowlist]
+      summary: List allowlisted senders and domains
+      responses:
+        "200":
+          description: Allowlist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AllowlistEntry"
+    post:
+      operationId: addAllowlistEntry
+      tags: [allowlist]
+      summary: Allowlist an email address or a domain
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewAllowlistEntry"
+      responses:
+        "201":
+          description: Added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AllowlistEntry"
+        "200":
+          description: Already on the list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AllowlistEntry"
+
+  /allowlist/{id}:
+    delete:
+      operationId: deleteAllowlistEntry
+      tags: [allowlist]
+      summary: Remove an allowlist entry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Removed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DisconnectResult"
+
+  /account/accept-risk:
+    post:
+      operationId: acceptRisk
+      tags: [account]
+      summary: Acknowledge that purged mail, including misfiled real mail, is gone forever
+      responses:
+        "200":
+          description: Recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskAcceptance"
+
+  /account:
+    delete:
+      operationId: deleteAccount
+      tags: [account]
+      summary: Delete the account and everything stored for it, and revoke Google access
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DisconnectResult"
+
 components:
   schemas:
     HealthStatus:
@@ -153,6 +287,68 @@ components:
           type: ["string", "null"]
         picture:
           type: ["string", "null"]
+        riskAccepted:
+          type: boolean
+
+    MobileTokenRequest:
+      type: object
+      required: [code, code_verifier]
+      properties:
+        code:
+          type: string
+        code_verifier:
+          type: string
+
+    MobileTokenResult:
+      type: object
+      required: [token]
+      properties:
+        token:
+          type: string
+
+    RiskAcceptance:
+      type: object
+      required: [riskAccepted, riskAcceptedAt]
+      properties:
+        riskAccepted:
+          type: boolean
+        riskAcceptedAt:
+          type: string
+          format: date-time
+
+    AllowlistEntry:
+      type: object
+      required: [id, pattern, createdAt]
+      properties:
+        id:
+          type: integer
+        pattern:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    NewAllowlistEntry:
+      type: object
+      required: [pattern]
+      properties:
+        pattern:
+          type: string
+          description: An email address, or a domain that also covers its subdomains
+
+    PurgedMessage:
+      type: object
+      required: [id, purgedAt]
+      properties:
+        id:
+          type: integer
+        sender:
+          type: ["string", "null"]
+        subject:
+          type: ["string", "null"]
+        purgedAt:
+          type: string
+          format: date-time
 
     DisconnectResult:
       type: object
@@ -167,6 +363,11 @@ components:
       properties:
         count:
           type: integer
+          description: Messages the current settings would purge
+        spam:
+          type: integer
+        trash:
+          type: integer
         sizeBytes:
           type: ["integer", "null"]
 
@@ -180,6 +381,15 @@ components:
           type: boolean
         message:
           type: ["string", "null"]
+        spamDeleted:
+          type: integer
+        trashDeleted:
+          type: integer
+        spamKept:
+          type: integer
+          description: Spam left in place by the allowlist or the delay window
+        durationMs:
+          type: integer
 
     PurgeRecord:
       type: object
@@ -212,12 +422,26 @@ components:
           type: integer
         maxIntervalMinutes:
           type: integer
+        purgeSpam:
+          type: boolean
+        purgeTrash:
+          type: boolean
+        spamDelayMinutes:
+          type: integer
+        maxSpamDelayMinutes:
+          type: integer
 
     UpdateSettings:
       type: object
-      required: [autoPurgeEnabled, autoPurgeIntervalMinutes]
+      description: Fields left out keep their current values
       properties:
         autoPurgeEnabled:
           type: boolean
         autoPurgeIntervalMinutes:
+          type: integer
+        purgeSpam:
+          type: boolean
+        purgeTrash:
+          type: boolean
+        spamDelayMinutes:
           type: integer
