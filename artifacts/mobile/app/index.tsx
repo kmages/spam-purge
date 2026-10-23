@@ -35,6 +35,7 @@ export default function Index() {
 }
 
 function SignIn() {
+  const c = useColors();
   const { signIn } = useAuth();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -77,7 +78,7 @@ function SignIn() {
           It never reads message bodies, never reads your Inbox, and never sends anything.
         </T>
       </Card>
-      {error ? <T style={{ color: '#B3261E' }}>{error}</T> : null}
+      {error ? <T style={{ color: c.danger }}>{error}</T> : null}
       <Button label="Connect Gmail" onPress={onSignIn} busy={busy} />
       <T kind="small">Google asks for full Gmail access because permanent deletion requires it.</T>
     </Screen>

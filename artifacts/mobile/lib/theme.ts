@@ -1,33 +1,20 @@
-import { useColorScheme } from 'react-native';
-
-const light = {
-  background: '#F6F7F9',
-  card: '#FFFFFF',
-  text: '#111418',
-  muted: '#5F6B7A',
-  border: '#E1E5EA',
-  primary: '#D93025',
-  primaryText: '#FFFFFF',
-  danger: '#B3261E',
-  dangerSoft: '#FCE8E6',
-  ok: '#188038',
+// Matches the website (artifacts/spam-purge/src/index.css): dark, with the mint-green accent.
+// The app is dark-only, like the site. Red is kept for the real warnings and destructive actions.
+const colors = {
+  background: '#050505',
+  card: '#0A0A0A',
+  text: '#FAFAFA',
+  muted: '#A6A6A6',
+  border: '#1F1F1F',
+  primary: '#00FFAA',
+  primaryText: '#000000',
+  danger: '#F87171',
+  dangerSoft: '#2A0F0F',
+  ok: '#00FFAA',
 };
 
-const dark: typeof light = {
-  background: '#0F1115',
-  card: '#181B21',
-  text: '#ECEFF3',
-  muted: '#9AA4B2',
-  border: '#2A2F37',
-  primary: '#F2665C',
-  primaryText: '#111418',
-  danger: '#F2B8B5',
-  dangerSoft: '#3A1D1C',
-  ok: '#81C995',
-};
-
-export type Colors = typeof light;
+export type Colors = typeof colors;
 
 export function useColors(): Colors {
-  return useColorScheme() === 'dark' ? dark : light;
+  return colors;
 }

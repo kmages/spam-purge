@@ -5,18 +5,18 @@
     "version": "2.0.0",
     "orientation": "portrait",
     "scheme": "spampurge",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "dark",
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.herokuapp.spam-cleaner",
-      "buildNumber": "4",
+      "buildNumber": "5",
       "config": {
         "usesNonExemptEncryption": false
       }
     },
     "android": {
       "package": "spamcleaner.herokuapp.com.spamtrashautodeletegmail",
-      "versionCode": 20000004,
+      "versionCode": 20000005,
       "permissions": [],
       "blockedPermissions": [
         "android.permission.RECORD_AUDIO",
