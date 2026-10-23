@@ -16,6 +16,12 @@ export const usersTable = pgTable("users", {
   // Set when the user acknowledges that purged mail, including misfiled real mail, is gone forever.
   riskAcceptedAt: timestamp("risk_accepted_at"),
   lastRunAt: timestamp("last_run_at"),
+  // Subscription, mirrored from RevenueCat webhooks: entitled while premiumUntil is in the future.
+  premiumUntil: timestamp("premium_until"),
+  // Time of the newest RevenueCat event applied, so a late-arriving older event can't undo a newer one.
+  premiumEventAt: timestamp("premium_event_at"),
+  // Free access granted by hand (the owner, friends). Never touched by webhooks.
+  compAccess: boolean("comp_access").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

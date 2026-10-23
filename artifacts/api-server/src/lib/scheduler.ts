@@ -1,5 +1,5 @@
 import { db, usersTable, purgedMessagesTable } from "@workspace/db";
-import { and, eq, isNotNull, lt, sql } from "drizzle-orm";
+import { and, eq, isNotNull, lt, or, gt, sql } from "drizzle-orm";
 import { isInvalidGrant } from "./google";
 import { markCredentialInvalid } from "./users";
 import { purgeForUser } from "./purge";
@@ -21,6 +21,7 @@ async function dueUsers() {
         eq(usersTable.autoPurgeEnabled, true),
         isNotNull(usersTable.refreshTokenEnc),
         isNotNull(usersTable.riskAcceptedAt),
+        or(eq(usersTable.compAccess, true), gt(usersTable.premiumUntil, sql`now()`)),
         sql`(${usersTable.lastRunAt} is null or ${usersTable.lastRunAt} + ${usersTable.autoPurgeIntervalMinutes} * interval '1 minute' <= now())`,
       ),
     )

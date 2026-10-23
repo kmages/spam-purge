@@ -8,6 +8,7 @@ import { createOAuthClient, getClientId, getClientSecret } from "../lib/google";
 import { upsertUserFromOAuth, disconnectUser } from "../lib/users";
 import { issueApiToken, setTokenCookie, clearTokenCookie } from "../lib/session";
 import { randomToken } from "../lib/crypto";
+import { appUserId, isEntitled } from "../lib/entitlement";
 
 const router = Router();
 
@@ -43,9 +44,12 @@ router.get("/auth/status", (req, res) => {
       name: user.name ?? null,
       picture: user.picture ?? null,
       riskAccepted: Boolean(user.riskAcceptedAt),
+      appUserId: appUserId(user),
+      premium: isEntitled(user),
+      premiumUntil: user.premiumUntil ? user.premiumUntil.toISOString() : null,
     });
   } else {
-    res.json({ connected: false, email: null, name: null, picture: null, riskAccepted: false });
+    res.json({ connected: false, email: null, name: null, picture: null, riskAccepted: false, appUserId: null, premium: false, premiumUntil: null });
   }
 });
 

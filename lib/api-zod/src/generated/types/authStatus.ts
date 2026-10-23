@@ -15,4 +15,13 @@ export interface AuthStatus {
   /** @nullable */
   picture?: string | null;
   riskAccepted: boolean;
+  /**
+     * The id the app logs in to RevenueCat with
+     * @nullable
+     */
+  appUserId?: string | null;
+  /** Whether purging is unlocked (active subscription or comp access) */
+  premium: boolean;
+  /** @nullable */
+  premiumUntil?: Date | null;
 }

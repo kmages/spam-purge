@@ -4,7 +4,7 @@ import { desc, eq } from "drizzle-orm";
 import { isInvalidGrant } from "../lib/google";
 import { markCredentialInvalid } from "../lib/users";
 import { countPurgeable, purgeForUser, NotConnectedError } from "../lib/purge";
-import { requireUser, requireRiskAccepted } from "../lib/session";
+import { requireUser, requireRiskAccepted, requireEntitled } from "../lib/session";
 
 const router = Router();
 
@@ -32,7 +32,7 @@ router.get("/spam/count", requireUser, async (req, res) => {
   }
 });
 
-router.post("/spam/purge", requireUser, requireRiskAccepted, async (req, res) => {
+router.post("/spam/purge", requireUser, requireRiskAccepted, requireEntitled, async (req, res) => {
   try {
     const outcome = await purgeForUser(req.user!, "manual");
     req.log.info({ userId: req.user!.id, ...outcome }, "Spam & trash purge complete");

@@ -277,7 +277,7 @@ components:
 
     AuthStatus:
       type: object
-      required: [connected, riskAccepted]
+      required: [connected, riskAccepted, premium]
       properties:
         connected:
           type: boolean
@@ -289,6 +289,15 @@ components:
           type: ["string", "null"]
         riskAccepted:
           type: boolean
+        appUserId:
+          type: ["string", "null"]
+          description: The id the app logs in to RevenueCat with
+        premium:
+          type: boolean
+          description: Whether purging is unlocked (active subscription or comp access)
+        premiumUntil:
+          type: ["string", "null"]
+          format: date-time
 
     MobileTokenRequest:
       type: object

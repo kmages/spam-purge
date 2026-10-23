@@ -179,6 +179,17 @@ export default function DashboardPage() {
       </header>
 
       <main className="flex-1 w-full max-w-5xl mx-auto px-4 py-8 md:py-12 flex flex-col gap-12">
+        {auth?.connected && auth.riskAccepted && !auth.premium && (
+          <Card className="border-primary/50">
+            <CardHeader>
+              <CardTitle>Start your free trial in the app</CardTitle>
+              <CardDescription className="text-base text-foreground/80">
+                Purging needs a SPAM Purge subscription: 3 days free, then $24.99 a year. Subscribe in the SPAM Purge app for iPhone or Android, signed in with this Google account, and purging unlocks here too.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        )}
+
         {auth?.connected && !auth.riskAccepted && (
           <Card className="border-destructive/50">
             <CardHeader>
@@ -230,7 +241,7 @@ export default function DashboardPage() {
 
               <button
                 onClick={handlePurge}
-                disabled={purgeSpam.isPending || !auth?.riskAccepted}
+                disabled={purgeSpam.isPending || !auth?.riskAccepted || !auth?.premium}
                 className="w-full relative group h-20 rounded-xl bg-destructive text-destructive-foreground font-bold text-xl md:text-2xl overflow-hidden transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none shadow-[0_0_40px_-10px_rgba(255,0,0,0.5)] hover:shadow-[0_0_60px_-15px_rgba(255,0,0,0.7)]"
               >
                 <div className="absolute inset-0 bg-black/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
@@ -274,7 +285,7 @@ export default function DashboardPage() {
                   id="auto-toggle"
                   checked={autoEnabled}
                   onCheckedChange={handleToggleAuto}
-                  disabled={updateSettings.isPending || (!autoEnabled && !auth?.riskAccepted)}
+                  disabled={updateSettings.isPending || (!autoEnabled && (!auth?.riskAccepted || !auth?.premium))}
                 />
               </div>
 

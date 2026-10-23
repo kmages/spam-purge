@@ -6,19 +6,31 @@
   "build": {
     "preview": {
       "distribution": "internal",
-      "android": { "buildType": "apk" },
-      "env": { "EXPO_PUBLIC_DOMAIN": "spam-purge.com" },
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_DOMAIN": "spam-purge.com",
+        "EXPO_PUBLIC_RC_IOS_KEY": "appl_sAfBAOnqgpJjwIGLKHnzQcVbvwl",
+        "EXPO_PUBLIC_RC_ANDROID_KEY": "goog_KNBInLtTvqdkcXAVoDndrrsIqwD"
+      },
       "node": "24.21.0"
     },
     "production": {
       "autoIncrement": false,
-      "env": { "EXPO_PUBLIC_DOMAIN": "spam-purge.com" },
+      "env": {
+        "EXPO_PUBLIC_DOMAIN": "spam-purge.com",
+        "EXPO_PUBLIC_RC_IOS_KEY": "appl_sAfBAOnqgpJjwIGLKHnzQcVbvwl",
+        "EXPO_PUBLIC_RC_ANDROID_KEY": "goog_KNBInLtTvqdkcXAVoDndrrsIqwD"
+      },
       "node": "24.21.0"
     }
   },
   "submit": {
     "production": {
-      "ios": { "ascAppId": "1168334177" }
+      "ios": {
+        "ascAppId": "1168334177"
+      }
     }
   }
 }

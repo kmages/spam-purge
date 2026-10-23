@@ -4,6 +4,7 @@ import * as Linking from 'expo-linking';
 import * as SecureStore from 'expo-secure-store';
 import * as WebBrowser from 'expo-web-browser';
 import { exchangeMobileCode, logout, setAuthTokenGetter, setBaseUrl } from '@workspace/api-client-react';
+import { forgetPurchaser } from './purchases';
 
 const TOKEN_KEY = 'spampurge.token';
 const REDIRECT_URI = 'spampurge://auth';
@@ -67,6 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const forget = useCallback(async () => {
+    void forgetPurchaser();
     currentToken = null;
     setSignedIn(false);
     await SecureStore.deleteItemAsync(TOKEN_KEY);

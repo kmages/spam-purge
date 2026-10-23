@@ -6,10 +6,12 @@ import settingsRouter from "./settings";
 import allowlistRouter from "./allowlist";
 import accountRouter from "./account";
 import { loadUser } from "../lib/session";
+import revenuecatRouter from "./revenuecat";
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
+router.use(revenuecatRouter);
 router.use(loadUser);
 router.use(authRouter);
 router.use(spamRouter);

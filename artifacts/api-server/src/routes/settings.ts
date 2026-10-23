@@ -1,7 +1,8 @@
 import { Router } from "express";
 import { db, usersTable, type User } from "@workspace/db";
 import { eq } from "drizzle-orm";
-import { requireUser } from "../lib/session";
+import { requireUser, SUBSCRIPTION_REQUIRED } from "../lib/session";
+import { isEntitled } from "../lib/entitlement";
 
 const router = Router();
 
@@ -45,6 +46,10 @@ router.put("/settings", requireUser, async (req, res) => {
         error: "risk_not_accepted",
         message: "Purged mail is deleted permanently, including real mail Gmail misfiles as spam. Accept this first.",
       });
+      return;
+    }
+    if (enabled && !user.autoPurgeEnabled && !isEntitled(user)) {
+      res.status(402).json(SUBSCRIPTION_REQUIRED);
       return;
     }
     if (enabled && !user.refreshTokenEnc) {

@@ -25,7 +25,10 @@ export const GetAuthStatusResponse = zod.object({
   "email": zod.string().nullish(),
   "name": zod.string().nullish(),
   "picture": zod.string().nullish(),
-  "riskAccepted": zod.boolean()
+  "riskAccepted": zod.boolean(),
+  "appUserId": zod.string().nullish().describe('The id the app logs in to RevenueCat with'),
+  "premium": zod.boolean().describe('Whether purging is unlocked (active subscription or comp access)'),
+  "premiumUntil": zod.coerce.date().nullish()
 })
 
 

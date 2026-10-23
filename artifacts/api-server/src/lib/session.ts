@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction } from "express";
 import { db, apiTokensTable, usersTable, type User } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { randomToken, sha256 } from "./crypto";
+import { isEntitled } from "./entitlement";
 
 export const TOKEN_COOKIE = "sp_token";
 const TOKEN_COOKIE_MAX_AGE_MS = 365 * 24 * 60 * 60 * 1000;
@@ -85,6 +86,20 @@ export function requireRiskAccepted(req: Request, res: Response, next: NextFunct
       error: "risk_not_accepted",
       message: "Purged mail is deleted permanently, including real mail Gmail misfiles as spam. Accept this first.",
     });
+    return;
+  }
+  next();
+}
+
+export const SUBSCRIPTION_REQUIRED = {
+  error: "subscription_required",
+  message: "Purging needs a SPAM Purge subscription. Start your free trial in the iPhone or Android app.",
+};
+
+// Purging is the paid feature. Subscriptions are bought only in the mobile apps.
+export function requireEntitled(req: Request, res: Response, next: NextFunction): void {
+  if (!req.user || !isEntitled(req.user)) {
+    res.status(402).json(SUBSCRIPTION_REQUIRED);
     return;
   }
   next();

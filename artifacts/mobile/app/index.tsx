@@ -17,6 +17,8 @@ import {
 } from '@workspace/api-client-react';
 import { Button, Card, Chips, LinkRow, Loading, Screen, T, ToggleRow } from '@/components/ui';
 import { GoogleWarningIllustration } from '@/components/GoogleWarningIllustration';
+import { Paywall } from '@/components/Paywall';
+import { identify } from '@/lib/purchases';
 import { useAuth } from '@/lib/auth';
 import { useColors } from '@/lib/theme';
 
@@ -94,8 +96,14 @@ function SignedIn() {
     if (auth && !auth.connected) void forget();
   }, [auth, forget]);
 
+  // Purchases belong to the SPAM Purge account, not the device.
+  useEffect(() => {
+    if (auth?.appUserId) void identify(auth.appUserId);
+  }, [auth?.appUserId]);
+
   if (isLoading || !auth?.connected) return <Loading />;
-  return auth.riskAccepted ? <Dashboard /> : <RiskGate />;
+  if (!auth.riskAccepted) return <RiskGate />;
+  return auth.premium ? <Dashboard /> : <Paywall />;
 }
 
 function RiskGate() {
