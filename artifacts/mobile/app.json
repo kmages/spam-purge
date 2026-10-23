@@ -9,14 +9,14 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.herokuapp.spam-cleaner",
-      "buildNumber": "1",
+      "buildNumber": "2",
       "config": {
         "usesNonExemptEncryption": false
       }
     },
     "android": {
       "package": "spamcleaner.herokuapp.com.spamtrashautodeletegmail",
-      "versionCode": 20000000,
+      "versionCode": 20000001,
       "permissions": [],
       "blockedPermissions": [
         "android.permission.RECORD_AUDIO",

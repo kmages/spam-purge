@@ -16,6 +16,7 @@ import {
   useUpdateSettings,
 } from '@workspace/api-client-react';
 import { Button, Card, Chips, LinkRow, Loading, Screen, T, ToggleRow } from '@/components/ui';
+import { GoogleWarningIllustration } from '@/components/GoogleWarningIllustration';
 import { useAuth } from '@/lib/auth';
 import { useColors } from '@/lib/theme';
 
@@ -58,11 +59,22 @@ function SignIn() {
         <T kind="heading">Before you connect</T>
         <T>Gmail's filter sometimes gets it wrong. If something you need lands in Spam, SPAM Purge deletes it, and it is gone forever. There is no undo.</T>
       </Card>
+      <Card>
+        <T kind="heading">Google will show a warning. Here's why.</T>
+        <T>
+          Google shows "Google hasn't verified this app" for small independent apps that haven't paid for its yearly
+          security audit. SPAM Purge is one person's app, not a big company. To continue, tap Advanced, then Go to
+          spam-purge.com (unsafe).
+        </T>
+        <GoogleWarningIllustration />
+        <T kind="muted">
+          What SPAM Purge does with your Gmail: counts Spam and Trash, reads the sender and subject of spam, and deletes.
+          It never reads message bodies, never reads your Inbox, and never sends anything.
+        </T>
+      </Card>
       {error ? <T style={{ color: '#B3261E' }}>{error}</T> : null}
       <Button label="Connect Gmail" onPress={onSignIn} busy={busy} />
-      <T kind="small">
-        Google will ask to let SPAM Purge read, send, delete and manage your email. Deleting is all it does. It never reads message bodies.
-      </T>
+      <T kind="small">Google asks for full Gmail access because permanent deletion requires it.</T>
     </Screen>
   );
 }
