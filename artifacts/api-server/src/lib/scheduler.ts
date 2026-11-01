@@ -1,8 +1,9 @@
 import { db, usersTable, purgedMessagesTable } from "@workspace/db";
-import { and, eq, isNotNull, lt, or, gt, sql } from "drizzle-orm";
+import { and, eq, ne, isNotNull, lt, or, gt, sql } from "drizzle-orm";
 import { isInvalidGrant } from "./google";
 import { markCredentialInvalid } from "./users";
 import { purgeForUser } from "./purge";
+import { DEMO_EMAIL } from "./demo";
 import { logger } from "./logger";
 
 const TICK_INTERVAL_MS = 30 * 1000;
@@ -18,6 +19,7 @@ async function dueUsers() {
     .from(usersTable)
     .where(
       and(
+        ne(usersTable.email, DEMO_EMAIL),
         eq(usersTable.autoPurgeEnabled, true),
         isNotNull(usersTable.refreshTokenEnc),
         isNotNull(usersTable.riskAcceptedAt),

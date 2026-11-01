@@ -5,6 +5,7 @@ import { isInvalidGrant } from "../lib/google";
 import { markCredentialInvalid } from "../lib/users";
 import { countPurgeable, purgeForUser, NotConnectedError } from "../lib/purge";
 import { requireUser, requireRiskAccepted, requireEntitled } from "../lib/session";
+import { isDemoUser, DEMO_COUNT, demoPurgeResult, demoHistory, demoLog } from "../lib/demo";
 
 const router = Router();
 
@@ -23,6 +24,10 @@ function gmailFailure(err: unknown, userId: number, res: any, fallback: string):
 }
 
 router.get("/spam/count", requireUser, async (req, res) => {
+  if (isDemoUser(req.user)) {
+    res.json(DEMO_COUNT);
+    return;
+  }
   try {
     const counts = await countPurgeable(req.user!);
     res.json({ ...counts, sizeBytes: null });
@@ -33,6 +38,10 @@ router.get("/spam/count", requireUser, async (req, res) => {
 });
 
 router.post("/spam/purge", requireUser, requireRiskAccepted, requireEntitled, async (req, res) => {
+  if (isDemoUser(req.user)) {
+    res.json(demoPurgeResult());
+    return;
+  }
   try {
     const outcome = await purgeForUser(req.user!, "manual");
     req.log.info({ userId: req.user!.id, ...outcome }, "Spam & trash purge complete");
@@ -49,6 +58,10 @@ router.post("/spam/purge", requireUser, requireRiskAccepted, requireEntitled, as
 });
 
 router.get("/spam/history", requireUser, async (req, res) => {
+  if (isDemoUser(req.user)) {
+    res.json(demoHistory());
+    return;
+  }
   try {
     const records = await db
       .select()
@@ -72,6 +85,10 @@ router.get("/spam/history", requireUser, async (req, res) => {
 
 // Sender and subject of spam purged in the last 30 days, newest first.
 router.get("/spam/log", requireUser, async (req, res) => {
+  if (isDemoUser(req.user)) {
+    res.json(demoLog());
+    return;
+  }
   try {
     const rows = await db
       .select()

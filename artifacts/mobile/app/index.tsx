@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, View } from 'react-native';
+import { Alert, Pressable, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import {
@@ -38,15 +38,26 @@ export default function Index() {
 
 function SignIn() {
   const c = useColors();
-  const { signIn } = useAuth();
+  const { signIn, demoSignIn } = useAuth();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showReview, setShowReview] = useState(false);
+  const [reviewCode, setReviewCode] = useState('');
+  const [reviewBusy, setReviewBusy] = useState(false);
 
   const onSignIn = async () => {
     setBusy(true);
     setError(null);
     setError(await signIn());
     setBusy(false);
+  };
+
+  const onReviewSignIn = async () => {
+    setReviewBusy(true);
+    setError(null);
+    const message = await demoSignIn(reviewCode);
+    if (message) setError(message);
+    setReviewBusy(false);
   };
 
   return (
@@ -83,6 +94,25 @@ function SignIn() {
       {error ? <T style={{ color: c.danger }}>{error}</T> : null}
       <Button label="Connect Gmail" onPress={onSignIn} busy={busy} />
       <T kind="small">Google asks for full Gmail access because permanent deletion requires it.</T>
+
+      <Pressable onPress={() => setShowReview((v) => !v)} style={{ marginTop: 24, alignSelf: 'center' }}>
+        <T kind="small" style={{ color: c.muted, textDecorationLine: 'underline' }}>App Review access</T>
+      </Pressable>
+      {showReview ? (
+        <View style={{ gap: 8, marginTop: 8 }}>
+          <T kind="small">For App Store / Play reviewers. Enter the review code from the submission notes.</T>
+          <TextInput
+            value={reviewCode}
+            onChangeText={setReviewCode}
+            placeholder="Review code"
+            placeholderTextColor={c.muted}
+            autoCapitalize="characters"
+            autoCorrect={false}
+            style={{ borderWidth: 1, borderColor: c.border, borderRadius: 8, padding: 12, color: c.text }}
+          />
+          <Button label="Enter demo" kind="secondary" onPress={onReviewSignIn} busy={reviewBusy} disabled={!reviewCode.trim()} />
+        </View>
+      ) : null}
     </Screen>
   );
 }

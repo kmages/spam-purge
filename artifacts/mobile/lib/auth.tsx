@@ -47,6 +47,8 @@ interface AuthContextValue {
   signIn: () => Promise<string | null>;
   // Finishes sign-in from the redirect's code or error. Resolves to an error message, or null.
   completeRedirect: (code: string | null, error: string | null) => Promise<string | null>;
+  // App Store / Google Play reviewer sign-in: trades a review code for a demo session, no Google needed.
+  demoSignIn: (code: string) => Promise<string | null>;
   signOut: () => Promise<void>;
   // Drops the local token without calling the server, e.g. after the account is deleted or a 401.
   forget: () => Promise<void>;
@@ -126,6 +128,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
   }, [completeRedirect]);
 
+  // Reviewer demo sign-in. The backend only honours this when REVIEW_DEMO_CODE is set and matches, so
+  // a real user who finds the screen and guesses gets nowhere. Stores the token like a normal sign-in.
+  const demoSignIn = useCallback(async (code: string): Promise<string | null> => {
+    try {
+      const res = await fetch(`${API_ORIGIN}/api/auth/demo`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: code.trim() }),
+      });
+      if (!res.ok) return 'That review code was not accepted.';
+      const { token } = (await res.json()) as { token?: string };
+      if (!token) return 'That review code was not accepted.';
+      await SecureStore.setItemAsync(TOKEN_KEY, token);
+      currentToken = token;
+      setSignedIn(true);
+      return null;
+    } catch {
+      return 'Could not reach the server. Please try again.';
+    }
+  }, []);
+
   const signOut = useCallback(async () => {
     try {
       await logout();
@@ -135,7 +158,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await forget();
   }, [forget]);
 
-  return <AuthContext.Provider value={{ ready, signedIn, signIn, completeRedirect, signOut, forget }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ ready, signedIn, signIn, completeRedirect, demoSignIn, signOut, forget }}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth(): AuthContextValue {

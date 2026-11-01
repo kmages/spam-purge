@@ -9,6 +9,7 @@ import { upsertUserFromOAuth, disconnectUser } from "../lib/users";
 import { issueApiToken, setTokenCookie, clearTokenCookie } from "../lib/session";
 import { randomToken } from "../lib/crypto";
 import { appUserId, isEntitled } from "../lib/entitlement";
+import { ensureDemoUser } from "../lib/demo";
 
 const router = Router();
 
@@ -143,6 +144,23 @@ router.get("/auth/google/callback", async (req, res) => {
     req.log.error({ err }, "OAuth callback failed");
     res.redirect(failRedirect(isMobile, "oauth_failed"));
   }
+});
+
+// App Store / Google Play reviewer sign-in. The app requires a Google account to do anything, which a
+// reviewer cannot sign in to, so this trades a shared review code for a Bearer token on a fixed demo
+// account (entitled, risk pre-accepted, no real mailbox). No effect unless REVIEW_DEMO_CODE is set.
+router.post("/auth/demo", async (req, res) => {
+  const expected = process.env.REVIEW_DEMO_CODE;
+  const { code } = (req.body ?? {}) as { code?: string };
+  if (!expected || !code || code !== expected) {
+    res.status(400).json({ error: "invalid_code" });
+    return;
+  }
+  const user = await ensureDemoUser();
+  const token = await issueApiToken(user.id, "mobile");
+  setTokenCookie(res, token);
+  req.log.info({ userId: user.id }, "Reviewer demo sign-in");
+  res.json({ token });
 });
 
 router.post("/auth/mobile/token", async (req, res) => {
